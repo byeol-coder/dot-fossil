@@ -9,6 +9,20 @@ export const ASSETS = {
     tutorial:   `${B}assets/reference/tutorial-dialogue-screen-bg.png`,
   },
 
+  screens: {
+    tutorialDialogue:  `${B}assets/screens/tutorial-dialogue-screen-bg.png`,
+    fossilSelect:      `${B}assets/screens/fossil-select-screen-bg.png`,
+    stageEnterDesert:  `${B}assets/screens/stage-enter-desert-bg.png`,
+    playDefault:       `${B}assets/screens/play-screen-default-bg.png`,
+    playClueFound:     `${B}assets/screens/play-screen-clue-found-bg.png`,
+    playDigging:       `${B}assets/screens/play-screen-digging-bg.png`,
+    playFossilFound:   `${B}assets/screens/play-screen-fossil-found-bg.png`,
+    playWarning:       `${B}assets/screens/play-screen-warning-bg.png`,
+    popupFossilFound:  `${B}assets/screens/fossil-found-popup-bg.png`,
+    popupDamageWarn:   `${B}assets/screens/damage-warning-popup-bg.png`,
+    excavationResult:  `${B}assets/screens/excavation-result-screen-bg.png`,
+  },
+
   character: {
     idle:    `${B}assets/characters/explorer-idle.png`,
     brush:   `${B}assets/characters/explorer-brush.png`,

@@ -27,6 +27,7 @@ export function createInitialState(stageId: string): GameState {
     collectedFossils: [],
     stageId,
     paused: false,
+    damageWarningShown: false,
   };
 }
 
@@ -114,7 +115,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const screenNames: Record<Screen, string> = {
         title: '타이틀',
         tutorial: '튜토리얼',
+        'fossil-select': '화석 선택',
+        'stage-enter': '발굴지 입장',
         game: '게임 시작',
+        'stage-result': '발굴 결과',
         collection: '도감',
       };
       return {
@@ -122,6 +126,80 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         screen: action.screen,
         brailleMessage: screenNames[action.screen],
         brailleLabel: '화면 전환',
+      };
+    }
+
+    case 'SELECT_STAGE': {
+      const newStage = STAGES[action.stageId] ?? STAGES['desert_rib'];
+      const generated = generateGrid(newStage);
+      return {
+        ...state,
+        stageId: action.stageId,
+        screen: 'stage-enter',
+        grid: generated.grid,
+        clues: generated.clues,
+        fossilPieces: generated.fossilPieces,
+        completion: 0,
+        damage: 0,
+        foundPieces: 0,
+        totalPieces: newStage.totalPieces,
+        cursor: { x: Math.floor(newStage.width / 2), y: Math.floor(newStage.height / 2), size: 1 },
+        characterAction: 'idle',
+        mode: 'clue_scan',
+        currentTool: 'brush',
+        damageWarningShown: false,
+        brailleMessage: `${newStage.name} 입장`,
+        brailleLabel: '스테이지',
+      };
+    }
+
+    case 'ENTER_STAGE': {
+      return {
+        ...state,
+        screen: 'game',
+        brailleMessage: '발굴 시작! 방향키로 이동, Space로 도구 사용',
+        brailleLabel: '게임',
+      };
+    }
+
+    case 'COMPLETE_STAGE': {
+      return {
+        ...state,
+        screen: 'stage-result',
+        brailleMessage: '발굴 완료! 결과를 확인하세요.',
+        brailleLabel: '결과',
+      };
+    }
+
+    case 'DISMISS_DAMAGE_WARNING': {
+      return {
+        ...state,
+        damageWarningShown: true,
+        brailleMessage: '조심히 계속 발굴합니다.',
+        brailleLabel: '경고 확인',
+      };
+    }
+
+    case 'RESTART_STAGE': {
+      const rstStage = STAGES[state.stageId] ?? STAGES['desert_rib'];
+      const rstGen = generateGrid(rstStage);
+      return {
+        ...state,
+        screen: 'game',
+        grid: rstGen.grid,
+        clues: rstGen.clues,
+        fossilPieces: rstGen.fossilPieces,
+        completion: 0,
+        damage: 0,
+        foundPieces: 0,
+        totalPieces: rstStage.totalPieces,
+        cursor: { x: Math.floor(rstStage.width / 2), y: Math.floor(rstStage.height / 2), size: 1 },
+        characterAction: 'idle',
+        mode: 'clue_scan',
+        currentTool: 'brush',
+        damageWarningShown: false,
+        brailleMessage: '재도전 시작!',
+        brailleLabel: '게임',
       };
     }
 

@@ -91,6 +91,7 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
   const [activeBtn, setActiveBtn] = useState(0);
 
   const handleStart = () => dispatch({ type: 'SET_SCREEN', screen: 'tutorial' });
+  const handlePlay = () => dispatch({ type: 'SET_SCREEN', screen: 'fossil-select' });
   const handleCollection = () => dispatch({ type: 'SET_SCREEN', screen: 'collection' });
 
   useEffect(() => {
@@ -98,6 +99,7 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (activeBtn === 4) handleCollection();
+        else if (activeBtn === 0) handlePlay();
         else handleStart();
       }
       if (e.key === 'ArrowLeft') setActiveBtn(b => Math.max(0, b - 1));
@@ -126,6 +128,7 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
                 onClick={() => {
                   setActiveBtn(i);
                   if (btn.key === 'collect') handleCollection();
+                  else if (btn.key === 'dig') handlePlay();
                   else handleStart();
                 }}
               >

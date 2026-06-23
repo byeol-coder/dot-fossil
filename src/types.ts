@@ -2,7 +2,7 @@ export type GameMode = 'clue_scan' | 'precision_dig' | 'collection';
 export type ToolType = 'brush' | 'careful_dig' | 'probe';
 export type CellType = 'soil' | 'hard_soil' | 'rock' | 'fossil' | 'crack' | 'empty' | 'revealed';
 export type CharacterAction = 'idle' | 'move' | 'brush' | 'dig' | 'probe' | 'found' | 'warning';
-export type Screen = 'title' | 'tutorial' | 'game' | 'collection';
+export type Screen = 'title' | 'tutorial' | 'fossil-select' | 'stage-enter' | 'game' | 'stage-result' | 'collection';
 
 export interface DigCell {
   x: number;
@@ -73,6 +73,7 @@ export interface GameState {
   collectedFossils: string[];
   stageId: string;
   paused: boolean;
+  damageWarningShown: boolean;
 }
 
 export type GameAction =
@@ -85,4 +86,9 @@ export type GameAction =
   | { type: 'SET_SCREEN'; screen: Screen }
   | { type: 'READ_POSITION' }
   | { type: 'READ_HINT' }
-  | { type: 'READ_SURROUNDINGS' };
+  | { type: 'READ_SURROUNDINGS' }
+  | { type: 'SELECT_STAGE'; stageId: string }
+  | { type: 'ENTER_STAGE' }
+  | { type: 'COMPLETE_STAGE' }
+  | { type: 'DISMISS_DAMAGE_WARNING' }
+  | { type: 'RESTART_STAGE' };

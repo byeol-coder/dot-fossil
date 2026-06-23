@@ -63,12 +63,12 @@ export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
     if (step < total - 1) {
       setStep(s => Math.min(s + 1, total - 1));
     } else {
-      dispatch({ type: 'SET_SCREEN', screen: 'game' });
+      dispatch({ type: 'SET_SCREEN', screen: 'fossil-select' });
     }
   }, [step, total, dispatch]);
 
   const skip = useCallback(() => {
-    dispatch({ type: 'SET_SCREEN', screen: 'game' });
+    dispatch({ type: 'SET_SCREEN', screen: 'fossil-select' });
   }, [dispatch]);
 
   useEffect(() => {

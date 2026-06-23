@@ -4,7 +4,10 @@ import { usePanningInput } from '../dotpad/panningInput';
 import { useKeyboardInput } from '../input/keyboardInput';
 import TitleScreen from './TitleScreen';
 import TutorialScreen from './TutorialScreen';
+import FossilSelectScreen from './FossilSelectScreen';
+import StageEnterScreen from './StageEnterScreen';
 import DigScreen from './DigScreen';
+import StageResultScreen from './StageResultScreen';
 import CollectionBook from './CollectionBook';
 
 const INITIAL_STAGE = 'desert_rib';
@@ -23,7 +26,6 @@ export default function GameApp() {
     if (prevScreen.current === state.screen) return;
     prevScreen.current = state.screen;
 
-    // Small delay so React finishes rendering the new screen first
     requestAnimationFrame(() => {
       const landmark = document.querySelector<HTMLElement>(
         '[role="main"] h1, [role="main"], main h1, main'
@@ -40,8 +42,14 @@ export default function GameApp() {
       return <TitleScreen dispatch={dispatch} />;
     case 'tutorial':
       return <TutorialScreen dispatch={dispatch} />;
+    case 'fossil-select':
+      return <FossilSelectScreen dispatch={dispatch} />;
+    case 'stage-enter':
+      return <StageEnterScreen state={state} dispatch={dispatch} />;
     case 'game':
       return <DigScreen state={state} dispatch={dispatch} />;
+    case 'stage-result':
+      return <StageResultScreen state={state} dispatch={dispatch} />;
     case 'collection':
       return (
         <CollectionBook
