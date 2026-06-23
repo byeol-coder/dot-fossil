@@ -5,8 +5,8 @@ import { ko } from '../i18n/ko';
 
 // How much fossilRevealProgress each tool adds per use (0-100 scale)
 const TOOL_REVEAL_POWER: Record<ToolType, number> = {
-  brush:       20,   // ~5 uses to fully reveal
-  careful_dig: 34,   // ~3 uses to fully reveal
+  brush:       34,   // ~3 uses to fully reveal
+  careful_dig: 51,   // ~2 uses to fully reveal
   probe:        0,   // scan only, no reveal
 };
 
