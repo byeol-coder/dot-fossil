@@ -55,6 +55,8 @@ export const ASSETS = {
     dilophosaurus:      `${B}assets/dinosaurs/dilophosaurus.png`,
     parasaurolophus:    `${B}assets/dinosaurs/parasaurolophus.png`,
     pachycephalosaurus: `${B}assets/dinosaurs/pachycephalosaurus.png`,
+    triceratops:        `${B}assets/dinosaurs/triceratops.png`,
+    stegosaurus:        `${B}assets/dinosaurs/stegosaurus.png`,
   },
 
   ui: {

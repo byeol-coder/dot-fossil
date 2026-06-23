@@ -35,6 +35,8 @@ const DINOSAUR_IMG: Record<string, string> = {
   dilophosaurus:         ASSETS.dinosaurs.dilophosaurus,
   parasaurolophus:       ASSETS.dinosaurs.parasaurolophus,
   pachycephalosaurus:    ASSETS.dinosaurs.pachycephalosaurus,
+  triceratops:           ASSETS.dinosaurs.triceratops,
+  stegosaurus:           ASSETS.dinosaurs.stegosaurus,
 };
 
 const CATEGORIES = [
