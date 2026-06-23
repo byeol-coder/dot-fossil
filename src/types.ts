@@ -1,18 +1,22 @@
 export type GameMode = 'clue_scan' | 'precision_dig' | 'collection';
 export type ToolType = 'brush' | 'careful_dig' | 'probe';
 export type CellType = 'soil' | 'hard_soil' | 'rock' | 'fossil' | 'crack' | 'empty' | 'revealed';
-export type CharacterAction = 'idle' | 'move' | 'brush' | 'dig' | 'probe' | 'found' | 'warning';
+export type CharacterAction = 'idle' | 'move' | 'brush' | 'dig' | 'probe' | 'found' | 'warning' | 'celebrate';
 export type Screen = 'title' | 'tutorial' | 'fossil-select' | 'stage-enter' | 'game' | 'stage-result' | 'collection';
+export type ExcavationGrade = 'clean' | 'good' | 'restore_needed';
+export type ResultAction = 'next_fossil' | 'collection' | 'retry' | 'home';
 
 export interface DigCell {
   x: number;
   y: number;
   type: CellType;
-  depth: number;      // 0=surface, 1=shallow, 2=deep
+  depth: number;          // 0=surface, 1=shallow, 2=deep (for soil/rock)
   revealed: boolean;
-  fragile: number;    // 0-1, how fragile this cell is
+  fragile: number;        // 0-1
   fossilId?: string;
-  damage: number;     // accumulated damage 0-1
+  pieceId?: string;       // which FossilPiece this cell belongs to
+  damage: number;         // accumulated damage 0-1
+  fossilRevealProgress?: number;  // 0-100, progressive reveal for fossil cells
 }
 
 export interface Clue {
@@ -39,7 +43,7 @@ export interface FossilDef {
   nameEn: string;
   pieces: number;
   description: string;
-  dinosaur?: string; // dinosaur species id that this fossil belongs to
+  dinosaur?: string;
 }
 
 export interface Stage {
@@ -54,6 +58,29 @@ export interface Stage {
   totalPieces: number;
 }
 
+export interface ExcavationResult {
+  stageId: string;
+  fossilId: string;
+  completion: number;
+  damage: number;
+  foundPieces: number;
+  requiredPieces: number;
+  grade: ExcavationGrade;
+  completedAt: string;
+}
+
+export interface CollectionItem {
+  fossilId: string;
+  stageId: string;
+  bestCompletion: number;
+  lowestDamage: number;
+  grade: ExcavationGrade;
+  timesCompleted: number;
+  unlocked: boolean;
+  completed: boolean;
+  lastCompletedAt: string;
+}
+
 export interface GameState {
   screen: Screen;
   mode: GameMode;
@@ -63,6 +90,7 @@ export interface GameState {
   characterAction: CharacterAction;
   brailleMessage: string;
   brailleLabel: string;
+  dialogueMessage: string;    // longer speech-bubble message (distinct from braille)
   completion: number;
   damage: number;
   foundPieces: number;
@@ -74,6 +102,9 @@ export interface GameState {
   stageId: string;
   paused: boolean;
   damageWarningShown: boolean;
+  result: ExcavationResult | null;
+  collection: CollectionItem[];
+  selectedResultActionIndex: number;
 }
 
 export type GameAction =
@@ -91,4 +122,6 @@ export type GameAction =
   | { type: 'ENTER_STAGE' }
   | { type: 'COMPLETE_STAGE' }
   | { type: 'DISMISS_DAMAGE_WARNING' }
-  | { type: 'RESTART_STAGE' };
+  | { type: 'RESTART_STAGE' }
+  | { type: 'RESULT_ACTION'; action: ResultAction }
+  | { type: 'SELECT_RESULT_ACTION'; index: number };

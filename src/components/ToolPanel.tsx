@@ -13,13 +13,14 @@ const LOCKED_TOOLS = [
 ];
 
 const ACTION_LABELS: Record<CharacterAction, string> = {
-  idle:    '대기',
-  move:    '이동',
-  brush:   '브러싱',
-  dig:     '발굴 중',
-  probe:   '탐지 중',
-  found:   '발견!',
-  warning: '주의!',
+  idle:      '대기',
+  move:      '이동',
+  brush:     '브러싱',
+  dig:       '발굴 중',
+  probe:     '탐지 중',
+  found:     '발견!',
+  warning:   '주의!',
+  celebrate: '축하!',
 };
 
 interface ToolPanelProps {

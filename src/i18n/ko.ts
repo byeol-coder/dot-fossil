@@ -83,6 +83,7 @@ export const ko = {
     noReaction: "특별한 반응은 없어.",
     brushRecommended: "브러시로 천천히 해보자.",
     damageWarning: "손상 위험! 더 조심해야 해.",
+    alreadyFound: "이미 발견한 조각이야.",
   },
 
   braille: {
@@ -98,6 +99,12 @@ export const ko = {
     fossilFound: "화석 발견",
     collectionSaved: "도감 저장",
     complete: "발굴 완료",
+    nextChoice: "다음 선택",
+    allComplete: "전체 완료",
+    alreadyFound: "이미 발견",
+    rockHit: "암석 발견",
+    soilRemoved: "흙 제거",
+    noReaction: "반응 없음",
   },
 
   result: {
@@ -107,6 +114,14 @@ export const ko = {
     clean: "깨끗한 발굴",
     good: "좋은 발굴",
     restoreNeeded: "복원이 더 필요해",
+    completeTitle: "발굴 완료",
+    completeMessage: "좋아! 발굴을 완료했어.",
+    savedToCollection: "도감에 저장했어.",
+    nextFossil: "다음 화석 발굴",
+    viewCollection: "도감 보기",
+    retry: "다시 발굴",
+    home: "메인으로",
+    allComplete: "모든 화석을 확인했어.",
   },
 
   accessibility: {

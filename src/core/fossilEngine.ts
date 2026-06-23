@@ -98,18 +98,19 @@ export function generateGrid(stage: Stage): {
           pieceCells.push(cells);
 
           // Paint cells in grid
+          const pieceId = `${fossil.fossilId}_${p}`;
           for (const cell of cells) {
             grid[cell.y][cell.x] = {
               ...grid[cell.y][cell.x],
               type: 'fossil',
               fossilId: fossil.fossilId,
+              pieceId,
               depth: 1 + Math.floor(rand() * 2),
               fragile: 0.7,
+              fossilRevealProgress: 0,
             };
           }
 
-          // Create fossil piece
-          const pieceId = `${fossil.fossilId}_${p}`;
           fossilPieces.push({
             id: pieceId,
             fossilId: fossil.fossilId,

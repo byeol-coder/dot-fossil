@@ -376,9 +376,9 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
       </div>
 
       {/* ── Character speech bubble ── */}
-      {state.brailleMessage && (
+      {(state.dialogueMessage || state.brailleMessage) && (
         <div className="dg-speech-bubble" role="status" aria-live="polite" aria-atomic="true">
-          {state.brailleMessage}
+          {state.dialogueMessage || state.brailleMessage}
         </div>
       )}
 

@@ -67,6 +67,16 @@ export function renderToDotGrid(
         continue;
       }
 
+      if (cell.type === 'fossil') {
+        // Progressive reveal: map fossilRevealProgress to tactile intensity
+        const progress = cell.fossilRevealProgress ?? 0;
+        if (progress >= 50)      dots[dotY][dotX] = fossilPattern(dotX, dotY, cellX, cellY); // 3-4: clear outline
+        else if (progress >= 25) dots[dotY][dotX] = 2;  // partial: moderate elevation
+        else if (progress > 0)   dots[dotY][dotX] = 2;  // hint: slight elevation
+        else                     dots[dotY][dotX] = soilPattern(dotX, dotY); // hidden: soil
+        continue;
+      }
+
       switch (cell.type) {
         case 'soil':
           dots[dotY][dotX] = soilPattern(dotX, dotY);
@@ -76,10 +86,6 @@ export function renderToDotGrid(
           break;
         case 'rock':
           dots[dotY][dotX] = rockPattern(dotX, dotY);
-          break;
-        case 'fossil':
-          // Partially revealed fossil (depth>0) shows as hard soil with slight hint
-          dots[dotY][dotX] = cell.depth === 1 ? hardSoilPattern(dotX, dotY) : soilPattern(dotX, dotY);
           break;
         case 'crack':
           dots[dotY][dotX] = crackPattern(dotX, dotY);

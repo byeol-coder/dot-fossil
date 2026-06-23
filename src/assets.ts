@@ -98,13 +98,14 @@ export const ASSETS = {
 // Map CharacterAction → character asset
 import type { CharacterAction } from './types';
 export const CHARACTER_ACTION_ASSET: Record<CharacterAction, string> = {
-  idle:    ASSETS.character.idle,
-  brush:   ASSETS.character.brush,
-  dig:     ASSETS.character.dig,
-  probe:   ASSETS.character.probe,
-  found:   ASSETS.character.found,
-  warning: ASSETS.character.warning,
-  move:    ASSETS.character.idle,
+  idle:      ASSETS.character.idle,
+  brush:     ASSETS.character.brush,
+  dig:       ASSETS.character.dig,
+  probe:     ASSETS.character.probe,
+  found:     ASSETS.character.found,
+  warning:   ASSETS.character.warning,
+  move:      ASSETS.character.idle,
+  celebrate: ASSETS.character.found,
 };
 
 // Map ToolType → tool asset
