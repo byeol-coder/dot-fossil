@@ -57,11 +57,11 @@ interface TutorialScreenProps {
 export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
   const [step, setStep] = useState(0);
   const total = STEPS.length;
-  const current = STEPS[step];
+  const current = STEPS[Math.min(step, total - 1)];
 
   const goNext = useCallback(() => {
     if (step < total - 1) {
-      setStep(s => s + 1);
+      setStep(s => Math.min(s + 1, total - 1));
     } else {
       dispatch({ type: 'SET_SCREEN', screen: 'game' });
     }
@@ -91,14 +91,27 @@ export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
       role="main"
       aria-label="튜토리얼"
     >
+      {/* Wooden border frame */}
+      <div className="gw-frame" aria-hidden="true" />
+
       {/* Skip button — top right */}
       <button className="tutorial-skip-btn" onClick={skip} aria-label="튜토리얼 건너뛰기">
         건너뛰기
       </button>
 
-      {/* Stone title banner — top center */}
-      <div className="tutorial-title-banner" role="heading" aria-level={2}>
-        {current.title}
+      {/* Stone ammonite banner — top center */}
+      <div className="gw-banner" aria-hidden="true">
+        <div style={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <svg width="52" height="38" viewBox="0 0 52 38" fill="none">
+            <ellipse cx="26" cy="9" rx="8" ry="5.5" fill="#5a90d0" />
+            <ellipse cx="26" cy="8" rx="5.5" ry="3.5" fill="#7ab0ee" opacity="0.7" />
+            <ellipse cx="26" cy="7" rx="2.5" ry="1.5" fill="#a8d0ff" opacity="0.6" />
+            <path d="M4 22 Q4 9 26 9 Q48 9 48 22" stroke="#9a7840" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <circle cx="4" cy="24" r="3.5" fill="#9a7840" />
+            <circle cx="48" cy="24" r="3.5" fill="#9a7840" />
+          </svg>
+        </div>
+        <div className="gw-banner-plate" role="heading" aria-level={2}>{current.title}</div>
       </div>
 
       {/* Character — left */}
@@ -144,7 +157,8 @@ export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
             ←
           </button>
         )}
-        <button className="tutorial-next-btn" onClick={goNext} aria-label={isLast ? '게임 시작' : '다음'}>
+        <button className="gw-oval-btn" onClick={goNext} aria-label={isLast ? '게임 시작' : '다음'}
+                style={{ padding: '11px 40px', fontSize: '1rem' }}>
           {isLast ? '시작!' : '다음 →'}
         </button>
       </div>

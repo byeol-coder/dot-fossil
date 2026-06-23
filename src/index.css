@@ -2379,3 +2379,500 @@ html, body {
 .tutorial-next-btn:active {
   transform: translateY(0);
 }
+
+/* ======================================================
+   GAME WORLD — shared frame system (gw- prefix)
+   Images 1/2/3 reference redesign
+   ====================================================== */
+
+.gw-screen {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: var(--font-main);
+  user-select: none;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Wooden border frame overlay */
+.gw-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 15px #231103,
+    inset 0 0 0 18px rgba(58,28,6,0.88),
+    inset 0 0 0 21px rgba(80,40,10,0.45);
+  border: 2px solid #180900;
+}
+.gw-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(120,65,18,0.12) 0%,
+    transparent 9%,
+    transparent 91%,
+    rgba(0,0,0,0.12) 100%);
+}
+
+/* Stone ammonite banner — top center */
+.gw-banner {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 190;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  width: max-content;
+}
+.gw-banner-plate {
+  background: linear-gradient(180deg, #ddd4ac 0%, #c0a870 30%, #ac8e52 60%, #c8ae78 85%, #ddd4ac 100%);
+  border: 2.5px solid #8a6030;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 9px 56px 12px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #3a2008;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.35);
+  box-shadow: 0 5px 16px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.28);
+  white-space: nowrap;
+  min-width: 180px;
+  text-align: center;
+}
+
+/* Green oval CTA button */
+.gw-oval-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #82e05e 0%, #56bc33 35%, #3c9a1e 65%, #2c7214 100%);
+  border: 2.5px solid #1c5210;
+  border-radius: 60px;
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding: 13px 52px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  letter-spacing: 0.02em;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.38), inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -2px 0 rgba(0,0,0,0.18);
+  transition: filter 0.15s, transform 0.12s;
+}
+.gw-oval-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.gw-oval-btn:active { transform: translateY(0); filter: brightness(0.95); }
+
+/* Stone rectangular button */
+.gw-stone-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(180deg, #ddd4ac 0%, #c0a870 50%, #ceb87c 100%);
+  border: 2px solid #8a6030;
+  border-radius: 10px;
+  color: #3a2008;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px 22px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  letter-spacing: 0.03em;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.28);
+  transition: filter 0.15s, transform 0.1s;
+}
+.gw-stone-btn:hover { filter: brightness(1.07); }
+.gw-stone-btn:active { transform: translateY(1px); }
+.gw-stone-btn.active {
+  background: linear-gradient(180deg, #ede0b0 0%, #d4b060 50%, #c8a050 100%);
+  border-color: #6a4010;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.28), 0 0 12px rgba(200,160,60,0.35);
+}
+
+/* Character corner — bottom-left */
+.gw-char-corner {
+  position: absolute;
+  bottom: 4%;
+  left: 0.5%;
+  z-index: 10;
+  height: 67%;
+  width: 22%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+.gw-char-corner img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom left;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.45));
+}
+
+/* Stone-framed card — shared card frame style */
+.gw-card-frame {
+  background: linear-gradient(180deg, #f2ecd8 0%, #ede5c8 100%);
+  border: 3px solid #9a7840;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.38);
+}
+.gw-card-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background:
+    radial-gradient(circle 5.5px at 10px 10px, #9a7840 0%, #7a5820 55%, transparent 100%),
+    radial-gradient(circle 5.5px at calc(100% - 10px) 10px, #9a7840 0%, #7a5820 55%, transparent 100%),
+    radial-gradient(circle 5.5px at 10px calc(100% - 10px), #9a7840 0%, #7a5820 55%, transparent 100%),
+    radial-gradient(circle 5.5px at calc(100% - 10px) calc(100% - 10px), #9a7840 0%, #7a5820 55%, transparent 100%);
+}
+
+/* Gold variant card frame */
+.gw-card-frame.gold {
+  border-color: #c89820;
+  box-shadow: 0 6px 24px rgba(200,152,30,0.48), 0 4px 16px rgba(0,0,0,0.38);
+}
+.gw-card-frame.gold::before {
+  background:
+    radial-gradient(circle 5.5px at 10px 10px, #d4a820 0%, #a07810 55%, transparent 100%),
+    radial-gradient(circle 5.5px at calc(100% - 10px) 10px, #d4a820 0%, #a07810 55%, transparent 100%),
+    radial-gradient(circle 5.5px at 10px calc(100% - 10px), #d4a820 0%, #a07810 55%, transparent 100%),
+    radial-gradient(circle 5.5px at calc(100% - 10px) calc(100% - 10px), #d4a820 0%, #a07810 55%, transparent 100%);
+}
+
+/* Circle badge atop card */
+.gw-card-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8b890 0%, #a08050 100%);
+  border: 2.5px solid #8a6030;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  transition: background 0.18s, border-color 0.18s;
+}
+.gw-card-badge.gold {
+  background: linear-gradient(135deg, #f0d060 0%, #c09020 100%);
+  border-color: #9a7010;
+  box-shadow: 0 2px 12px rgba(200,150,20,0.5);
+}
+
+/* ======================================================
+   COLLECTION WORLD (Image 1)
+   ====================================================== */
+
+/* 4-card horizontal strip */
+.gw-col-cards {
+  position: absolute;
+  top: 14%;
+  left: 21%;
+  right: 3.5%;
+  bottom: 19%;
+  display: flex;
+  gap: 1.8%;
+  align-items: stretch;
+  z-index: 20;
+}
+
+.gw-col-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.18s;
+  min-width: 0;
+}
+.gw-col-card:hover { transform: translateY(-4px); }
+
+.gw-col-card-inner {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.gw-col-card-img-area {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px 10px;
+}
+.gw-col-card-img {
+  max-width: 78%;
+  max-height: 100%;
+  object-fit: contain;
+  opacity: 0.14;
+  filter: sepia(0.9) saturate(0.3);
+  transition: opacity 0.3s, filter 0.3s;
+}
+.gw-col-card.collected .gw-col-card-img {
+  opacity: 0.86;
+  filter: none;
+}
+
+.gw-col-card-name {
+  width: 100%;
+  background: rgba(35,18,5,0.84);
+  color: #ddd0a0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 7px 4px;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 4;
+  flex-shrink: 0;
+}
+.gw-col-card.active .gw-col-card-name { color: #f0d870; }
+.gw-col-card.locked .gw-col-card-name { color: rgba(180,180,180,0.35); }
+
+.gw-col-card-found-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(40,120,48,0.88);
+  color: #b0ffb0;
+  z-index: 5;
+}
+
+/* Character speech bubble (bottom-left area) */
+.gw-col-bubble {
+  position: absolute;
+  bottom: 10%;
+  left: 19%;
+  width: 25%;
+  background: rgba(255, 252, 240, 0.96);
+  border: 2px solid #a87840;
+  border-radius: 16px;
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  line-height: 1.68;
+  color: #3a2008;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+  z-index: 15;
+}
+.gw-col-bubble::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  bottom: 28%;
+  border: 10px solid transparent;
+  border-right-color: #a87840;
+}
+.gw-col-bubble::after {
+  content: '';
+  position: absolute;
+  left: -13px;
+  bottom: calc(28% + 3px);
+  border: 7px solid transparent;
+  border-right-color: rgba(255, 252, 240, 0.96);
+}
+
+/* Bottom nav buttons */
+.gw-col-nav {
+  position: absolute;
+  bottom: 3.5%;
+  right: 3.5%;
+  display: flex;
+  gap: 10px;
+  z-index: 30;
+}
+
+/* ======================================================
+   DIG WORLD (Image 2)
+   ====================================================== */
+
+/* Wooden bulletin board */
+.gw-dig-board {
+  position: absolute;
+  top: 11%;
+  left: 9%;
+  width: 61%;
+  height: 73%;
+  z-index: 15;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #c8a85a 0%, #a07832 30%, #b89248 60%, #c8a85a 100%);
+  border: 5px solid #7a5020;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.52),
+    inset 0 0 30px rgba(50,24,0,0.35),
+    3px 3px 0 #3a2008,
+    5px 5px 0 rgba(20,10,0,0.4);
+}
+.gw-dig-board::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 2px solid rgba(50,24,0,0.28);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+.gw-dig-board-inner {
+  position: absolute;
+  inset: 6px;
+  background: #0d0a06;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* Right info card */
+.gw-dig-rcard {
+  position: absolute;
+  top: 9%;
+  right: 2%;
+  width: 25%;
+  height: 82%;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.gw-dig-rcard-body {
+  flex: 1;
+  width: 100%;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Stat blocks */
+.gw-dig-stat { display: flex; flex-direction: column; gap: 3px; }
+.gw-dig-stat-label {
+  font-size: 0.68rem; font-weight: 700; color: #6a4420; letter-spacing: 0.05em;
+}
+.gw-dig-stat-bar {
+  height: 9px; background: rgba(90,50,20,0.18); border-radius: 5px;
+  overflow: hidden; border: 1px solid rgba(90,50,20,0.12);
+}
+.gw-dig-bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+.gw-dig-bar-fill.completion { background: linear-gradient(90deg, #40944a, #60c860); }
+.gw-dig-bar-fill.damage { background: linear-gradient(90deg, #c03030, #e04848); }
+.gw-dig-bar-fill.damage.danger { background: linear-gradient(90deg, #d82010, #ff3828); }
+.gw-dig-stat-val { font-size: 0.72rem; font-weight: 700; color: #3a2008; text-align: right; }
+
+.gw-dig-divider { height: 1px; background: rgba(90,50,20,0.2); margin: 2px 0; flex-shrink: 0; }
+
+.gw-dig-section-label {
+  font-size: 0.65rem; font-weight: 700; color: #6a4420;
+  letter-spacing: 0.07em; text-transform: uppercase;
+}
+
+/* Tool buttons inside right card */
+.gw-dig-tool-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  background: rgba(90,50,20,0.1);
+  border: 1.5px solid rgba(90,50,20,0.18);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.76rem;
+  color: #5a3818;
+  font-weight: 600;
+  font-family: var(--font-main);
+  text-align: left;
+  width: 100%;
+}
+.gw-dig-tool-btn.active {
+  background: rgba(200,160,60,0.2);
+  border-color: rgba(200,160,60,0.4);
+  color: #3a2008;
+}
+.gw-dig-tool-btn img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+.gw-dig-key {
+  font-size: 0.55rem; font-family: var(--font-mono);
+  background: rgba(90,50,20,0.18); border: 1px solid rgba(90,50,20,0.25);
+  border-radius: 3px; padding: 1px 4px; color: rgba(90,50,20,0.6); margin-left: auto; flex-shrink: 0;
+}
+
+/* Fossil piece slots */
+.gw-dig-piece-slots { display: flex; flex-wrap: wrap; gap: 5px; }
+.gw-dig-piece-slot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(90,50,20,0.15);
+  border: 1.5px solid rgba(90,50,20,0.25);
+  transition: background 0.3s;
+}
+.gw-dig-piece-slot.found {
+  background: radial-gradient(circle, #c8a45a 0%, #a07820 100%);
+  border-color: #7a5820;
+  box-shadow: 0 0 6px rgba(200,164,90,0.4);
+}
+
+/* Nav buttons at bottom of right card */
+.gw-dig-rcard-nav { display: flex; flex-direction: column; gap: 5px; margin-top: auto; padding-top: 6px; }
+
+/* DotPad connect button area */
+.gw-dig-cta {
+  position: absolute;
+  bottom: 4%;
+  right: 2%;
+  z-index: 30;
+}
+
+/* Braille bar below the board */
+.gw-dig-braille {
+  position: absolute;
+  bottom: 3.5%;
+  left: 9%;
+  width: 61%;
+  height: 8%;
+  z-index: 25;
+}
+
+/* ======================================================
+   TUTORIAL WORLD (Image 3) — layout overrides
+   ====================================================== */
+.tutorial-screen .tutorial-character-wrap {
+  bottom: 4%;
+  height: 71%;
+  width: 24%;
+  left: 0.5%;
+}
+.tutorial-screen .tutorial-bubble {
+  left: 23%;
+  top: 9%;
+  width: 69%;
+  height: 57%;
+}
+.tutorial-screen .tutorial-name-plate {
+  bottom: 7%;
+  left: 5%;
+}
