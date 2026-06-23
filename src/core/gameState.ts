@@ -3,6 +3,7 @@ import { STAGES } from '../data/stages';
 import { generateGrid } from './fossilEngine';
 import { applyTool } from './digEngine';
 import { getClueMessage } from './clueEngine';
+import { ko } from '../i18n/ko';
 
 export function createInitialState(stageId: string): GameState {
   const stage = STAGES[stageId] ?? STAGES['desert_rib'];
@@ -70,9 +71,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SET_TOOL': {
       const toolNames: Record<ToolType, string> = {
-        brush: '브러시 선택',
-        careful_dig: '조심 파기 선택',
-        probe: '탐침 선택',
+        brush: `${ko.tools.brush} 선택`,
+        careful_dig: `${ko.tools.carefulDig} 선택`,
+        probe: `${ko.tools.probe} 선택`,
       };
       return {
         ...state,
@@ -113,13 +114,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SET_SCREEN': {
       const screenNames: Record<Screen, string> = {
-        title: '타이틀',
-        tutorial: '튜토리얼',
-        'fossil-select': '화석 선택',
-        'stage-enter': '발굴지 입장',
-        game: '게임 시작',
-        'stage-result': '발굴 결과',
-        collection: '도감',
+        title: ko.intro.title,
+        tutorial: ko.tutorial.title,
+        'fossil-select': ko.braille.fossilSelect,
+        'stage-enter': ko.braille.stageEnter,
+        game: ko.stage.enterMessage,
+        'stage-result': ko.result.title,
+        collection: ko.common.collection,
       };
       return {
         ...state,
@@ -157,7 +158,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         screen: 'game',
-        brailleMessage: '발굴 시작! 방향키로 이동, Space로 도구 사용',
+        brailleMessage: ko.stage.enterMessage,
         brailleLabel: '게임',
       };
     }
@@ -166,8 +167,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         screen: 'stage-result',
-        brailleMessage: '발굴 완료! 결과를 확인하세요.',
-        brailleLabel: '결과',
+        brailleMessage: ko.braille.complete,
+        brailleLabel: ko.result.title,
       };
     }
 
@@ -175,7 +176,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         damageWarningShown: true,
-        brailleMessage: '조심히 계속 발굴합니다.',
+        brailleMessage: ko.common.continueDigging,
         brailleLabel: '경고 확인',
       };
     }

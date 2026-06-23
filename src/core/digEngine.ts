@@ -1,6 +1,7 @@
 import type { GameState, ToolType, DigCell, FossilPiece } from '../types';
 import { TOOL_DEFS } from '../data/tools';
 import { calcDamage } from './damageEngine';
+import { ko } from '../i18n/ko';
 
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
@@ -46,10 +47,10 @@ export function applyTool(
     const hasRock = types.has('rock');
     const hasCrack = types.has('crack');
     let msg = '주변 탐지: ';
-    if (hasFossil) msg += '화석 반응! ';
+    if (hasFossil) msg += `${ko.gameplay.clueCurve}! `;
     if (hasRock) msg += '암석 있음. ';
-    if (hasCrack) msg += '균열 발견. ';
-    if (!hasFossil && !hasRock && !hasCrack) msg += '일반 토양.';
+    if (hasCrack) msg += `${ko.gameplay.clueCrack}. `;
+    if (!hasFossil && !hasRock && !hasCrack) msg += ko.gameplay.noReaction;
     return {
       brailleMessage: msg.trim(),
       brailleLabel: '탐침 결과',
@@ -123,18 +124,18 @@ export function applyTool(
   let characterAction: GameState['characterAction'] = tool === 'brush' ? 'brush' : 'dig';
 
   if (foundPieceIds.length > 0) {
-    brailleMessage = '화석 발견!';
-    brailleLabel = '발굴 성공';
+    brailleMessage = ko.gameplay.fossilFound;
+    brailleLabel = ko.braille.fossilFound;
     characterAction = 'found';
   } else if (damagedFossil) {
-    brailleMessage = '화석 손상 주의!';
-    brailleLabel = '위험';
+    brailleMessage = ko.gameplay.damageWarning;
+    brailleLabel = ko.braille.crackWarning;
     characterAction = 'warning';
   } else if (tool === 'brush') {
-    brailleMessage = '흙을 털어냈습니다.';
-    brailleLabel = '브러시';
+    brailleMessage = ko.gameplay.soilRemoved;
+    brailleLabel = ko.tools.brush;
   } else {
-    brailleMessage = '흙을 파냈습니다.';
+    brailleMessage = ko.gameplay.soilRemoved;
     brailleLabel = '발굴';
   }
 
