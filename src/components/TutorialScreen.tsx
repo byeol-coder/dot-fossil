@@ -1,26 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction, CharacterAction } from '../types';
 import { ASSETS, CHARACTER_ACTION_ASSET } from '../assets';
-import { ko } from '../i18n/ko';
 import GameAssetImage from './GameAssetImage';
+import { useTranslation } from '../i18n';
 
 interface TutorialStep {
   title: string;
   character: CharacterAction;
   text: string;
 }
-
-const CHAR_NAME = '도티';
-
-const STEP_TITLES = [
-  `탐험가 ${CHAR_NAME}를 소개해요`,
-  '촉각으로 발굴해요',
-  'DotPad 촉각 디스플레이',
-  '지형 읽기',
-  '화석 단서 찾기',
-  '안전 발굴',
-];
 
 const STEP_CHARACTERS: CharacterAction[] = [
   'found',
@@ -31,20 +20,27 @@ const STEP_CHARACTERS: CharacterAction[] = [
   'warning',
 ];
 
-const STEPS: TutorialStep[] = ko.tutorial.dialogues.map((text, i) => ({
-  title: STEP_TITLES[i] ?? ko.tutorial.title,
-  character: STEP_CHARACTERS[i] ?? 'idle',
-  text,
-}));
-
 interface TutorialScreenProps {
   dispatch: Dispatch<GameAction>;
 }
 
 export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
+  const { t, tArr } = useTranslation();
   const [step, setStep] = useState(0);
+
+  const STEPS: TutorialStep[] = useMemo(() => {
+    const titles = tArr('tutorial.stepTitles');
+    const dialogues = tArr('tutorial.dialogues');
+    return dialogues.map((text, i) => ({
+      title: titles[i] ?? t('tutorial.title'),
+      character: STEP_CHARACTERS[i] ?? 'idle',
+      text,
+    }));
+  }, [t, tArr]);
+
   const total = STEPS.length;
   const current = STEPS[Math.min(step, total - 1)];
+  const charName = t('tutorial.charName');
 
   const goNext = useCallback(() => {
     if (step < total - 1) {
@@ -76,14 +72,14 @@ export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
       className="tutorial-screen"
       style={{ backgroundImage: `url('${ASSETS.reference.tutorial}')` }}
       role="main"
-      aria-label="튜토리얼"
+      aria-label={t('tutorial.title')}
     >
       {/* Wooden border frame */}
       <div className="gw-frame" aria-hidden="true" />
 
       {/* Skip button — top right */}
-      <button className="tutorial-skip-btn" onClick={skip} aria-label="튜토리얼 건너뛰기">
-        건너뛰기
+      <button className="tutorial-skip-btn" onClick={skip} aria-label={t('tutorial.skipBtn')}>
+        {t('tutorial.skipBtn')}
       </button>
 
       {/* Stone ammonite banner — top center */}
@@ -98,13 +94,13 @@ export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
             <circle cx="48" cy="24" r="3.5" fill="#9a7840" />
           </svg>
         </div>
-        <div className="gw-banner-plate" role="heading" aria-level={2}>{current.title}</div>
+        <div className="gw-banner-plate" role="heading" aria-level={2}>{current?.title}</div>
       </div>
 
       {/* Character — left */}
       <div className="tutorial-character-wrap" aria-hidden="true">
         <GameAssetImage
-          src={CHARACTER_ACTION_ASSET[current.character]}
+          src={CHARACTER_ACTION_ASSET[current?.character ?? 'idle']}
           alt=""
           className="tutorial-character-img"
         />
@@ -114,39 +110,39 @@ export default function TutorialScreen({ dispatch }: TutorialScreenProps) {
       <div
         className="tutorial-bubble"
         role="region"
-        aria-label="튜토리얼 내용"
+        aria-label={t('tutorial.title')}
         aria-live="polite"
         aria-atomic="true"
       >
-        <p className="tutorial-bubble-text">{current.text}</p>
+        <p className="tutorial-bubble-text">{current?.text}</p>
       </div>
 
       {/* Character name plate — bottom left */}
-      <div className="tutorial-name-plate" aria-label={`말하는 캐릭터: ${CHAR_NAME}`}>
-        {CHAR_NAME}
+      <div className="tutorial-name-plate" aria-label={charName}>
+        {charName}
       </div>
 
       {/* Step dots + nav — bottom right */}
       <div className="tutorial-nav">
-        <div className="tutorial-step-dots" aria-label={`${step + 1} / ${total} 단계`}>
+        <div className="tutorial-step-dots" aria-label={`${step + 1} / ${total}`}>
           {STEPS.map((_, i) => (
             <button
               key={i}
               className={`tutorial-step-dot${i === step ? ' active' : ''}`}
               onClick={() => setStep(i)}
-              aria-label={`${i + 1}번 단계`}
+              aria-label={`${i + 1}`}
               aria-current={i === step ? 'step' : undefined}
             />
           ))}
         </div>
         {step > 0 && (
-          <button className="tutorial-prev-btn" onClick={() => setStep(s => s - 1)} aria-label="이전">
+          <button className="tutorial-prev-btn" onClick={() => setStep(s => s - 1)} aria-label={t('common.back')}>
             ←
           </button>
         )}
-        <button className="gw-oval-btn" onClick={goNext} aria-label={isLast ? '게임 시작' : '다음'}
+        <button className="gw-oval-btn" onClick={goNext} aria-label={isLast ? t('tutorial.startBtn') : t('common.next')}
                 style={{ padding: '11px 40px', fontSize: '1rem' }}>
-          {isLast ? '시작!' : '다음 →'}
+          {isLast ? t('tutorial.startBtn') : t('common.next')}
         </button>
       </div>
     </div>

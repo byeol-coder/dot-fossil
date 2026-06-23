@@ -10,6 +10,7 @@ export const ASSETS = {
   },
 
   screens: {
+    title:             `${B}assets/screens/title-screen-bg.png`,
     tutorialDialogue:  `${B}assets/screens/tutorial-dialogue-screen-bg.png`,
     fossilSelect:      `${B}assets/screens/fossil-select-screen-bg.png`,
     stageEnterDesert:  `${B}assets/screens/stage-enter-desert-bg.png`,

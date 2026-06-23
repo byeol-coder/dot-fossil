@@ -4,6 +4,7 @@ import type { GameAction, GameState } from '../types';
 import { STAGES } from '../data/stages';
 import { ASSETS } from '../assets';
 import GameAssetImage from './GameAssetImage';
+import { useTranslation } from '../i18n';
 
 interface StageEnterScreenProps {
   state: GameState;
@@ -11,6 +12,7 @@ interface StageEnterScreenProps {
 }
 
 export default function StageEnterScreen({ state, dispatch }: StageEnterScreenProps) {
+  const { t } = useTranslation();
   const stage = STAGES[state.stageId] ?? STAGES['desert_rib'];
 
   const enter = useCallback(() => {
@@ -41,18 +43,18 @@ export default function StageEnterScreen({ state, dispatch }: StageEnterScreenPr
 
       {/* Stage name */}
       <div className="se-title-card" aria-label={`발굴지: ${stage.name}`}>
-        <div className="se-title-label">발굴지 입장</div>
+        <div className="se-title-label">{t('stage.enterTitle')}</div>
         <div className="se-title-name">{stage.name}</div>
         <div className="se-title-sub">{stage.nameEn}</div>
       </div>
 
       {/* Target */}
       <div className="se-target-card" role="region" aria-label="발굴 목표">
-        <div className="se-target-label">오늘의 목표</div>
+        <div className="se-target-label">{t('stage.todayGoal')}</div>
         <p className="se-target-text">{stage.target}</p>
         <div className="se-target-pieces">
           <span className="se-pieces-num">{stage.totalPieces}</span>
-          <span className="se-pieces-label">조각</span>
+          <span className="se-pieces-label">{t('stage.piecesUnit')}</span>
         </div>
       </div>
 
@@ -68,7 +70,7 @@ export default function StageEnterScreen({ state, dispatch }: StageEnterScreenPr
       {/* Speech bubble */}
       <div className="gw-col-bubble se-bubble" role="status" aria-live="polite">
         <p style={{ margin: 0, whiteSpace: 'pre-line' }}>
-          {`${stage.name}에 도착했어!\n자, 발굴을 시작해보자!`}
+          {`${stage.name}${t('stage.enterBubble')}`}
         </p>
       </div>
 
@@ -80,9 +82,9 @@ export default function StageEnterScreen({ state, dispatch }: StageEnterScreenPr
           aria-label="발굴 시작"
           style={{ padding: '14px 52px', fontSize: '1.1rem' }}
         >
-          발굴 시작!
+          {t('stage.startBtn')}
         </button>
-        <p className="se-hint">Enter 또는 Space로 시작</p>
+        <p className="se-hint">{t('stage.keyHint')}</p>
       </div>
     </div>
   );

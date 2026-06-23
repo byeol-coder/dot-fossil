@@ -13,6 +13,7 @@ import DotPadConnector from './DotPadConnector';
 import GameAssetImage from './GameAssetImage';
 import FossilRevealLayer from './FossilRevealLayer';
 import { ASSETS, TOOL_ASSET, CHARACTER_ACTION_ASSET } from '../assets';
+import { useTranslation } from '../i18n';
 
 const TOOL_LIST: ToolType[] = ['brush', 'careful_dig', 'probe'];
 
@@ -32,13 +33,14 @@ function getPlayBg(characterAction: GameState['characterAction'], damage: number
 
 function FossilFoundPopup({
   foundPieces, totalPieces, fossilName, brailleMessage,
-  onContinue,
+  onContinue, t,
 }: {
   foundPieces: number; totalPieces: number; fossilName: string;
   brailleMessage: string; onContinue: () => void;
+  t: (k: string) => string;
 }) {
   return (
-    <div className="dg-popup-overlay" role="dialog" aria-modal="true" aria-label="화석 발견!">
+    <div className="dg-popup-overlay" role="dialog" aria-modal="true" aria-label={t('gameplay.fossilFoundTitle')}>
       <div
         className="dg-popup"
         style={{ backgroundImage: `url('${ASSETS.screens.popupFossilFound}')` }}
@@ -59,7 +61,7 @@ function FossilFoundPopup({
         </div>
         {/* Right panel */}
         <div className="dg-popup-right">
-          <div className="dg-popup-title">화석 조각 발견!</div>
+          <div className="dg-popup-title">{t('gameplay.fossilFoundTitle')}</div>
           <div className="dg-popup-fossil-name">{fossilName}</div>
           <div className="dg-popup-pieces">
             {Array.from({ length: totalPieces }).map((_, i) => (
@@ -71,11 +73,11 @@ function FossilFoundPopup({
           <button
             className="gw-oval-btn"
             onClick={onContinue}
-            aria-label="계속 발굴"
+            aria-label={t('gameplay.continueBtn')}
             style={{ marginTop: 12, padding: '10px 32px' }}
             autoFocus
           >
-            계속 발굴
+            {t('gameplay.continueBtn')}
           </button>
         </div>
       </div>
@@ -84,13 +86,14 @@ function FossilFoundPopup({
 }
 
 function DamageWarningPopup({
-  damage, completion, currentTool, onContinue,
+  damage, completion, currentTool, onContinue, t,
 }: {
   damage: number; completion: number; currentTool: ToolType; onContinue: () => void;
+  t: (k: string) => string;
 }) {
   const tool = TOOL_DEFS[currentTool];
   return (
-    <div className="dg-popup-overlay" role="dialog" aria-modal="true" aria-label="손상 경고">
+    <div className="dg-popup-overlay" role="dialog" aria-modal="true" aria-label={t('gameplay.damageWarnTitle')}>
       <div
         className="dg-popup"
         style={{ backgroundImage: `url('${ASSETS.screens.popupDamageWarn}')` }}
@@ -109,12 +112,12 @@ function DamageWarningPopup({
         </div>
         {/* Right panel */}
         <div className="dg-popup-right">
-          <div className="dg-popup-title dg-warn-title">화석 손상 위험!</div>
-          <p className="dg-popup-msg">
-            {'화석이 손상되고 있어요!\n더 부드러운 도구를 사용하거나\n조심스럽게 발굴해주세요.'}
+          <div className="dg-popup-title dg-warn-title">{t('gameplay.damageWarnTitle')}</div>
+          <p className="dg-popup-msg" style={{ whiteSpace: 'pre-line' }}>
+            {t('gameplay.damageWarnMsg')}
           </p>
           <div className="dg-warn-tool-row">
-            <span className="dg-warn-tool-label">현재 도구</span>
+            <span className="dg-warn-tool-label">{t('gameplay.currentTool')}</span>
             <GameAssetImage
               src={TOOL_ASSET[currentTool]}
               alt={tool.name}
@@ -126,12 +129,12 @@ function DamageWarningPopup({
           </div>
           <div className="dg-warn-meters">
             <div className="dg-warn-meter">
-              <span>손상도</span>
+              <span>{t('gameplay.damageLabel')}</span>
               <div className="dg-warn-bar"><div className="dg-warn-bar-fill damage" style={{ width: `${damage}%` }} /></div>
               <span className="dg-warn-pct" style={{ color: '#c03030' }}>{damage}%</span>
             </div>
             <div className="dg-warn-meter">
-              <span>발굴률</span>
+              <span>{t('gameplay.progressLabel')}</span>
               <div className="dg-warn-bar"><div className="dg-warn-bar-fill completion" style={{ width: `${completion}%` }} /></div>
               <span className="dg-warn-pct">{completion}%</span>
             </div>
@@ -139,11 +142,11 @@ function DamageWarningPopup({
           <button
             className="gw-oval-btn"
             onClick={onContinue}
-            aria-label="조심히 계속하기"
+            aria-label={t('gameplay.carefulContinueBtn')}
             style={{ marginTop: 12, padding: '10px 28px' }}
             autoFocus
           >
-            조심히 계속하기
+            {t('gameplay.carefulContinueBtn')}
           </button>
         </div>
       </div>
@@ -176,6 +179,7 @@ function AmmoniteSVG() {
 }
 
 export default function DigScreen({ state, dispatch, dotpadStatus, connect, disconnect, sendGrid: _sendGrid, sendRawHex }: DigScreenProps) {
+  const { t } = useTranslation();
   const stage = STAGES[state.stageId];
   const { completion, damage, foundPieces, totalPieces, currentTool, characterAction } = state;
 
@@ -227,8 +231,8 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
   // Stage complete → result screen
   useEffect(() => {
     if (state.completion >= 100 && prevCompletion.current < 100) {
-      const t = setTimeout(() => dispatch({ type: 'COMPLETE_STAGE' }), 1800);
-      return () => clearTimeout(t);
+      const tid = setTimeout(() => dispatch({ type: 'COMPLETE_STAGE' }), 1800);
+      return () => clearTimeout(tid);
     }
     prevCompletion.current = state.completion;
   }, [state.completion, dispatch]);
@@ -277,7 +281,7 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         <div className="gw-dig-rcard-body">
           {/* Progress stats */}
           <div className="gw-dig-stat">
-            <div className="gw-dig-stat-label">발굴 진행도</div>
+            <div className="gw-dig-stat-label">{t('gameplay.progressLabel')}</div>
             <div className="gw-dig-stat-bar">
               <div
                 className="gw-dig-bar-fill completion"
@@ -286,14 +290,14 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
                 aria-valuenow={completion}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label={`발굴 완료 ${completion}%`}
+                aria-label={`${t('gameplay.progressLabel')} ${completion}%`}
               />
             </div>
             <div className="gw-dig-stat-val">{completion}%</div>
           </div>
 
           <div className="gw-dig-stat">
-            <div className="gw-dig-stat-label">화석 손상도</div>
+            <div className="gw-dig-stat-label">{t('gameplay.damageLabel')}</div>
             <div className="gw-dig-stat-bar">
               <div
                 className={`gw-dig-bar-fill damage${damage > 60 ? ' danger' : ''}`}
@@ -302,7 +306,7 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
                 aria-valuenow={damage}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label={`화석 손상 ${damage}%`}
+                aria-label={`${t('gameplay.damageLabel')} ${damage}%`}
               />
             </div>
             <div className={`gw-dig-stat-val${damage > 60 ? ' danger' : ''}`}
@@ -313,8 +317,8 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
 
           {/* Fossil piece slots */}
           <div className="gw-dig-stat">
-            <div className="gw-dig-stat-label">발굴 조각 ({foundPieces}/{totalPieces})</div>
-            <div className="gw-dig-piece-slots" aria-label={`${foundPieces}/${totalPieces} 조각 발견`}>
+            <div className="gw-dig-stat-label">{t('gameplay.piecesLabel')} ({foundPieces}/{totalPieces})</div>
+            <div className="gw-dig-piece-slots" aria-label={`${foundPieces}/${totalPieces}`}>
               {Array.from({ length: totalPieces }).map((_, i) => (
                 <div key={i} className={`gw-dig-piece-slot${i < foundPieces ? ' found' : ''}`} aria-hidden="true" />
               ))}
@@ -323,13 +327,13 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
 
           {/* Mode & cursor position */}
           <div className="gw-dig-stat" aria-live="polite" style={{ color: '#6a4420', fontSize: '0.7rem' }}>
-            위치: ({state.cursor.x + 1}, {state.cursor.y + 1}) — {state.mode === 'clue_scan' ? '단서 탐색' : '정밀 발굴'}
+            {t('gameplay.posLabel')}: ({state.cursor.x + 1}, {state.cursor.y + 1}) — {state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}
           </div>
 
           <div className="gw-dig-divider" aria-hidden="true" />
 
           {/* Tool selection */}
-          <div className="gw-dig-section-label">도구 선택</div>
+          <div className="gw-dig-section-label">{t('gameplay.toolSelectLabel')}</div>
           {TOOL_LIST.map(toolId => {
             const tool = TOOL_DEFS[toolId];
             return (
@@ -368,17 +372,17 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
               className="gw-stone-btn"
               style={{ fontSize: '0.82rem', padding: '7px 12px', width: '100%' }}
               onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'collection' })}
-              aria-label="도감 보기"
+              aria-label={t('common.collection')}
             >
-              도감 보기
+              {t('common.collection')}
             </button>
             <button
               className="gw-stone-btn"
               style={{ fontSize: '0.82rem', padding: '7px 12px', width: '100%' }}
               onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'title' })}
-              aria-label="메인 메뉴"
+              aria-label={t('gameplay.menuBtn')}
             >
-              ← 메뉴
+              {t('gameplay.menuBtn')}
             </button>
           </div>
         </div>
@@ -405,10 +409,10 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         <button
           className="gw-oval-btn"
           onClick={() => dispatch({ type: 'USE_TOOL' })}
-          aria-label="도구 사용 (Space)"
+          aria-label={`${t('gameplay.useTool')} ${t('gameplay.useToolKey')}`}
           style={{ padding: '12px 36px', fontSize: '1rem' }}
         >
-          도구 사용
+          {t('gameplay.useTool')}
         </button>
       </div>
 
@@ -425,6 +429,7 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
           fossilName={fossilName}
           brailleMessage={state.brailleMessage}
           onContinue={() => setDigView('playing')}
+          t={t}
         />
       )}
       {digView === 'damage-warning' && (
@@ -436,13 +441,14 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
             dispatch({ type: 'DISMISS_DAMAGE_WARNING' });
             setDigView('playing');
           }}
+          t={t}
         />
       )}
 
       {/* Stage complete flash */}
       {completion >= 100 && digView === 'playing' && (
         <div className="dg-complete-flash" aria-live="assertive">
-          발굴 완료! 결과를 확인합니다...
+          {t('gameplay.completeFlash')}
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { FOSSIL_DEFS } from '../data/fossils';
 import { ASSETS } from '../assets';
 import { getFossilPattern } from '../dotpad/fossilPatterns';
 import GameAssetImage from './GameAssetImage';
+import { useTranslation } from '../i18n';
 
 const FOSSIL_IMG: Record<string, string> = {
   rib:             ASSETS.fossils.rib,
@@ -53,6 +54,7 @@ interface CollectionBookProps {
 }
 
 export default function CollectionBook({ collectedFossils, fossilPieces, dispatch, sendRawHex }: CollectionBookProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -78,11 +80,11 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
 
   const speechText = activeCard
     ? collected(activeCard.id)
-      ? `${activeCard.name} 발굴 완료!\n도감에 등록됐어요 🎉`
+      ? `${activeCard.name} ${t('collection.foundMsg')}`
       : piecesFound > 0
-        ? `${activeCard.name} ${piecesFound}/${activeCard.pieces} 조각 발굴 중!\n계속 발굴해봐요.`
-        : `${activeCard.name}는 아직 미발굴이에요.\n발굴 현장으로 가볼까요?`
-    : '화석을 발굴해서\n도감을 채워보자!';
+        ? `${activeCard.name} ${piecesFound}/${activeCard.pieces} ${t('collection.progressMsg')}`
+        : `${activeCard.name}${t('collection.notStartedMsg')}`
+    : t('collection.noFossil');
 
   return (
     <div
@@ -99,7 +101,7 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
         <div className="gw-banner-deco" style={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <AmmoniteSVG />
         </div>
-        <div className="gw-banner-plate">화석 도감</div>
+        <div className="gw-banner-plate">{t('collection.title')}</div>
       </div>
 
       {/* 4-card horizontal strip */}
@@ -114,7 +116,7 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
               role="listitem"
               className={`gw-col-card${isActive ? ' active' : ''}${isCollected ? ' collected' : ''}`}
               onClick={() => setActiveIdx(i)}
-              aria-label={`${fossil.name} — ${isCollected ? '발굴완료' : '미발굴'}`}
+              aria-label={`${fossil.name} — ${isCollected ? t('collection.foundTag') : ''}`}
               tabIndex={0}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setActiveIdx(i); }}
             >
@@ -136,7 +138,7 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
                     <span style={{ fontSize: '2rem', opacity: 0.2, color: '#9a7840' }}>?</span>
                   )}
                   {isCollected && (
-                    <span className="gw-col-card-found-tag">발굴완료</span>
+                    <span className="gw-col-card-found-tag">{t('collection.foundTag')}</span>
                   )}
                 </div>
 
@@ -178,19 +180,19 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
         <button
           className="gw-stone-btn"
           onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'game' })}
-          aria-label="발굴 화면으로"
+          aria-label={t('collection.navDig')}
         >
-          발굴
+          {t('collection.navDig')}
         </button>
-        <button className="gw-stone-btn active" aria-current="page" aria-label="도감">
-          도감
+        <button className="gw-stone-btn active" aria-current="page" aria-label={t('collection.navCollection')}>
+          {t('collection.navCollection')}
         </button>
         <button
           className="gw-stone-btn"
           onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'title' })}
-          aria-label="홈으로"
+          aria-label={t('collection.navHome')}
         >
-          홈
+          {t('collection.navHome')}
         </button>
         {page < totalPages - 1 && (
           <button className="gw-stone-btn" onClick={() => { setPage(p => p + 1); setActiveIdx(0); }} aria-label="다음 페이지">

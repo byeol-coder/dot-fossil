@@ -506,168 +506,191 @@ html, body {
 }
 
 /* ===== TITLE SCREEN — IMAGE BACKGROUND VERSION ===== */
-.title-screen-img {
+/* ===== TITLE SCREEN — NEW DESIGN ===== */
+.title-new {
   position: relative;
   width: 100%;
   height: 100dvh;
   overflow: hidden;
-  background-image: url('/assets/reference/dot-fossil-intro-reference.png');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
 }
 
-/* Gradient overlay fades in at the bottom to make buttons readable */
-.title-bottom-overlay {
+/* Subtitle overlay — covers baked-in "촉각 발굴단" on wooden sign */
+.title-subtitle-wrap {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(6, 4, 1, 0.6) 25%,
-    rgba(6, 4, 1, 0.92) 52%,
-    rgb(5, 3, 1) 70%
-  );
-  padding: 52px 5% 18px;
+  /* dark band beneath "Dot Fossil" logo: ~33-42% of viewport */
+  top: 33%;
+  left: 6%;
+  width: 52%;
+  min-height: 9%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-.title-menu-img {
-  width: 100%;
-  max-width: 860px;
-}
-
-.menu-nav-buttons-img {
-  display: flex;
-  gap: clamp(8px, 1.5vw, 16px);
-  justify-content: center;
-  margin-bottom: 18px;
-}
-
-/* Each menu button */
-.menu-btn-img {
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: clamp(110px, 14vw, 180px);
-  min-height: 90px;
-  padding: 14px 10px 12px;
-  background: linear-gradient(
-    180deg,
-    rgba(55, 38, 14, 0.92) 0%,
-    rgba(30, 20, 8, 0.95) 60%,
-    rgba(22, 14, 5, 0.97) 100%
-  );
-  border: 1px solid rgba(90, 60, 20, 0.7);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
-  font-family: var(--font-main);
-  color: var(--text-muted);
-  backdrop-filter: blur(2px);
-  position: relative;
-  overflow: visible;
-}
-
-.menu-btn-img::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  gap: 10px;
+  /* opaque background matching the dark sign band */
+  background: #100c06;
+  padding: 6px 0 8px;
   pointer-events: none;
 }
 
-.menu-btn-img:hover {
-  border-color: rgba(140, 100, 40, 0.9);
-  background: linear-gradient(
-    180deg,
-    rgba(70, 50, 18, 0.95) 0%,
-    rgba(42, 28, 10, 0.97) 60%,
-    rgba(30, 20, 8, 0.98) 100%
-  );
-  color: var(--text-primary);
+.title-subtitle-dash {
+  color: #b8943a;
+  font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
 }
 
-.menu-btn-img.active {
-  border: 2px solid #c8a45a;
-  background: linear-gradient(
-    180deg,
-    rgba(70, 48, 16, 0.97) 0%,
-    rgba(46, 30, 10, 0.98) 60%,
-    rgba(34, 22, 8, 0.99) 100%
-  );
-  box-shadow:
-    0 0 18px rgba(200, 164, 90, 0.4),
-    0 0 36px rgba(200, 164, 90, 0.18),
-    inset 0 0 14px rgba(200, 164, 90, 0.1);
-  color: var(--text-primary);
+.title-subtitle-text {
+  color: #d4a84a;
+  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
-.menu-btn-img-icon {
+/* Tagline overlay — covers baked-in parchment scroll text (~45-59% of viewport) */
+.title-tagline-wrap {
+  position: absolute;
+  top: 45%;
+  left: 6%;
+  width: 52%;
+  min-height: 14%;
+  margin: 0;
+  text-align: center;
+  /* opaque parchment-like background matching scroll area */
+  background: #c8a860;
+  padding: 8px 16px 10px;
+  color: #2a1a08;
+  font-size: clamp(0.72rem, 1.1vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
-  line-height: 1;
+  pointer-events: none;
 }
 
-.menu-btn-img-label {
-  font-size: clamp(0.75rem, 1.1vw, 0.95rem);
-  color: #c8a45a;
+/* ── Three pill buttons at bottom ── */
+.title-pill-nav {
+  position: absolute;
+  /* bottom: 8% → nav bottom at ~92% of viewport, covers baked-in buttons (79-91%) */
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: clamp(10px, 2vw, 22px);
+  align-items: center;
+}
+
+.title-pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1vw, 12px);
+  width: clamp(200px, 22vw, 320px);
+  /* 12vh ≈ 96px at 800px viewport — matches baked-in button height (~95px scaled) */
+  height: clamp(85px, 12vh, 115px);
+  padding: 0 clamp(18px, 2.5vw, 32px);
+  background: linear-gradient(
+    180deg,
+    #4a2e0a 0%,
+    #2e1c06 60%,
+    #1e1204 100%
+  );
+  border: 2px solid #8a6820;
+  border-radius: 100px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+
+/* top gloss */
+.title-pill-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  border-radius: 100px 100px 0 0;
+  pointer-events: none;
+}
+
+.title-pill-btn:hover {
+  border-color: #c8a45a;
+  background: linear-gradient(180deg, #5a3a10 0%, #3a2408 60%, #241604 100%);
+  box-shadow: 0 4px 18px rgba(180, 130, 40, 0.35);
+}
+
+.title-pill-btn.active {
+  border-color: #e8c45a;
+  background: linear-gradient(180deg, #6a4418 0%, #402810 60%, #2a180a 100%);
+  box-shadow:
+    0 0 20px rgba(220, 174, 70, 0.45),
+    0 0 40px rgba(200, 160, 60, 0.2),
+    inset 0 0 16px rgba(220, 174, 70, 0.12);
+}
+
+.title-pill-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+}
+
+.title-pill-label {
+  font-size: clamp(0.88rem, 1.3vw, 1.05rem);
   font-weight: 700;
+  color: #c8a45a;
   letter-spacing: 0.12em;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 1px 5px rgba(0,0,0,0.9);
+  white-space: nowrap;
 }
 
-.menu-btn-img.active .menu-btn-img-label {
+.title-pill-btn.active .title-pill-label {
   color: #e8c87a;
 }
 
-/* Footer row */
-.title-footer-img {
+/* ── Language toggle button — bottom right ── */
+.title-lang-btn {
+  position: absolute;
+  /* bottom: 8% → aligns with the baked-in 한국어 button (≈87-91% of viewport) */
+  bottom: 8%;
+  right: 4%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 860px;
-  padding: 6px 4px 4px;
-}
-
-.footer-enter-hint-img {
-  flex: 1;
-  text-align: center;
-  font-size: clamp(0.68rem, 1vw, 0.82rem);
-  color: rgba(160, 128, 80, 0.8);
-  letter-spacing: 0.15em;
-  animation: blink-hint 2s ease-in-out infinite;
-}
-
-.footer-icon-btn-img {
-  background: none;
-  border: 1px solid rgba(58, 40, 16, 0.8);
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 6px;
+  background: rgba(28, 18, 6, 0.82);
+  border: 1.5px solid #7a5820;
+  border-radius: 100px;
+  padding: 6px 14px 6px 10px;
   cursor: pointer;
-  color: #6b5030;
-  transition: border-color 0.18s, color 0.18s;
-  flex-shrink: 0;
+  font-family: var(--font-main);
+  font-size: clamp(0.68rem, 0.9vw, 0.8rem);
+  font-weight: 700;
+  color: #c8a45a;
+  letter-spacing: 0.1em;
+  transition: border-color 0.18s, background 0.18s;
 }
 
-.footer-icon-btn-img:hover {
+.title-lang-btn:hover {
   border-color: #c8a45a;
-  color: #c8a45a;
+  background: rgba(48, 30, 10, 0.9);
+}
+
+/* ── Version label — bottom left ── */
+.title-version {
+  position: absolute;
+  bottom: 3%;
+  left: 1.5%;
+  font-size: clamp(0.62rem, 0.8vw, 0.72rem);
+  color: rgba(140, 104, 50, 0.65);
+  font-family: var(--font-main);
+  pointer-events: none;
 }
 
 /* ===== GAME SCREEN — IMAGE BACKGROUND VERSION ===== */

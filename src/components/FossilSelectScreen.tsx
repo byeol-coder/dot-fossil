@@ -4,6 +4,7 @@ import type { GameAction } from '../types';
 import { STAGES } from '../data/stages';
 import { ASSETS } from '../assets';
 import GameAssetImage from './GameAssetImage';
+import { useTranslation } from '../i18n';
 
 const FOSSIL_IMG: Record<string, string> = {
   rib:     ASSETS.fossils.rib,
@@ -23,6 +24,7 @@ interface FossilSelectScreenProps {
 }
 
 export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps) {
+  const { t } = useTranslation();
   const stages = Object.values(STAGES);
 
   const selectStage = useCallback((stageId: string) => {
@@ -64,7 +66,7 @@ export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps
             <circle cx="48" cy="24" r="3.5" fill="#9a7840" />
           </svg>
         </div>
-        <div className="gw-banner-plate">오늘의 화석 발굴지</div>
+        <div className="gw-banner-plate">{t('fossilSelect.sectionTitle')}</div>
       </div>
 
       {/* Character */}
@@ -79,7 +81,7 @@ export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps
       {/* Speech bubble */}
       <div className="gw-col-bubble fs-bubble" role="status" aria-live="polite">
         <p style={{ margin: 0, whiteSpace: 'pre-line' }}>
-          {'어떤 화석을 발굴할까요?\n발굴지를 선택하세요!'}
+          {t('fossilSelect.bubbleText')}
         </p>
       </div>
 
@@ -110,13 +112,13 @@ export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps
               </div>
               <div className="fs-card-name">{stage.name}</div>
               <div className="fs-card-target">{stage.target}</div>
-              <div className="fs-card-pieces">{stage.totalPieces}조각</div>
+              <div className="fs-card-pieces">{stage.totalPieces}{t('fossilSelect.piecesUnit')}</div>
               <button
                 className="gw-oval-btn fs-start-btn"
                 onClick={e => { e.stopPropagation(); selectStage(stage.id); }}
-                aria-label={`${stage.name} 발굴 시작`}
+                aria-label={`${stage.name} ${t('fossilSelect.startBtn')}`}
               >
-                발굴 시작
+                {t('fossilSelect.startBtn')}
               </button>
             </div>
           );
@@ -130,7 +132,7 @@ export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps
           onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'title' })}
           aria-label="타이틀로 돌아가기"
         >
-          ← 뒤로
+          {t('common.back')}
         </button>
       </nav>
     </div>

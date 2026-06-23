@@ -4,8 +4,8 @@ import type { GameAction, GameState, ResultAction } from '../types';
 import { STAGES } from '../data/stages';
 import { ASSETS } from '../assets';
 import { getFossilPattern } from '../dotpad/fossilPatterns';
-import { ko } from '../i18n/ko';
 import GameAssetImage from './GameAssetImage';
+import { useTranslation } from '../i18n';
 
 const FOSSIL_IMG: Record<string, string> = {
   rib:             ASSETS.fossils.rib,
@@ -21,13 +21,6 @@ const FOSSIL_IMG: Record<string, string> = {
   legfoot:         ASSETS.fossils.legfoot,
   partialSkeleton: ASSETS.fossils.partialSkeleton,
 };
-
-const RESULT_ACTIONS: { action: ResultAction; label: string }[] = [
-  { action: 'next_fossil', label: ko.result.nextFossil },
-  { action: 'collection',  label: ko.result.viewCollection },
-  { action: 'retry',       label: ko.result.retry },
-  { action: 'home',        label: ko.result.home },
-];
 
 function StarSVG({ filled }: { filled: boolean }) {
   return (
@@ -75,6 +68,7 @@ interface StageResultScreenProps {
 }
 
 export default function StageResultScreen({ state, dispatch, sendRawHex }: StageResultScreenProps) {
+  const { t } = useTranslation();
   const stage     = STAGES[state.stageId] ?? STAGES['desert_rib'];
   const result    = state.result;
   const grade     = result?.grade ?? 'restore_needed';
@@ -90,20 +84,25 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
     completion >= 50           ? 1 : 0;
 
   const gradeLabel =
-    grade === 'clean'         ? ko.result.clean :
-    grade === 'good'          ? ko.result.good :
-                                ko.result.restoreNeeded;
+    grade === 'clean'         ? t('result.clean') :
+    grade === 'good'          ? t('result.good') :
+                                t('result.restoreNeeded');
+
+  const RESULT_ACTIONS: { action: ResultAction; label: string }[] = [
+    { action: 'next_fossil', label: t('result.nextFossil') },
+    { action: 'collection',  label: t('result.viewCollection') },
+    { action: 'retry',       label: t('result.retry') },
+    { action: 'home',        label: t('result.home') },
+  ];
 
   const selectedIdx = state.selectedResultActionIndex;
 
-  // Show the fossil tactile pattern on DotPad when result screen opens
   useEffect(() => {
     const pattern = getFossilPattern(mainFossilId);
     if (pattern) sendRawHex(pattern);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keyboard navigation for result action buttons
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -121,7 +120,7 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dispatch, selectedIdx]);
+  }, [dispatch, selectedIdx, RESULT_ACTIONS]);
 
   const handleAction = useCallback((action: ResultAction) => {
     dispatch({ type: 'RESULT_ACTION', action });
@@ -131,7 +130,7 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
     <div
       className="gw-screen sr-screen"
       role="main"
-      aria-label="발굴 결과"
+      aria-label={t('result.title')}
       style={{
         backgroundImage: `url('${ASSETS.screens.excavationResult}'), url('${ASSETS.reference.gameplay}')`,
       }}
@@ -150,11 +149,11 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
             <circle cx="48" cy="24" r="3.5" fill="#9a7840" />
           </svg>
         </div>
-        <div className="gw-banner-plate">{ko.result.title}</div>
+        <div className="gw-banner-plate">{t('result.title')}</div>
       </div>
 
       {/* Left panel — fossil display */}
-      <div className="sr-left-panel" aria-label="발굴된 화석">
+      <div className="sr-left-panel" aria-label={t('result.title')}>
         <div className="sr-fossil-frame">
           {fossilImg && (
             <GameAssetImage
@@ -170,7 +169,7 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
         <div className="sr-fossil-name">{stage.name}</div>
 
         {/* Stars */}
-        <div className="sr-stars" aria-label={`평가: ${gradeLabel}`}>
+        <div className="sr-stars" aria-label={gradeLabel}>
           {[1, 2, 3].map(n => <StarSVG key={n} filled={stars >= n} />)}
         </div>
         <div className="sr-rating-label">{gradeLabel}</div>
@@ -184,25 +183,25 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
             />
           ))}
         </div>
-        <div className="sr-pieces-label">{state.foundPieces}/{state.totalPieces} 조각 발굴</div>
+        <div className="sr-pieces-label">{state.foundPieces}/{state.totalPieces} {t('result.piecesLabel')}</div>
       </div>
 
       {/* Right panel — stats + actions */}
-      <div className="sr-right-panel" role="region" aria-label="발굴 통계 및 다음 행동">
-        <div className="sr-stage-name" aria-label={`스테이지: ${stage.nameEn ?? stage.name}`}>
+      <div className="sr-right-panel" role="region" aria-label={t('result.keyHint')}>
+        <div className="sr-stage-name" aria-label={stage.nameEn ?? stage.name}>
           {stage.nameEn ?? stage.name}
         </div>
 
         {/* Progress bars */}
         <div className="sr-stat">
-          <span className="sr-stat-label">{ko.result.completion}</span>
+          <span className="sr-stat-label">{t('result.completion')}</span>
           <div className="sr-stat-bar">
             <div className="sr-bar-fill completion" style={{ width: `${completion}%` }} />
           </div>
           <span className="sr-stat-val">{completion}%</span>
         </div>
         <div className="sr-stat">
-          <span className="sr-stat-label">화석 보존율</span>
+          <span className="sr-stat-label">{t('result.conserveLabel')}</span>
           <div className="sr-stat-bar">
             <div className="sr-bar-fill conserve" style={{ width: `${conservePct}%` }} />
           </div>
@@ -213,11 +212,11 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
         <div className="sr-gauges-row" aria-hidden="true">
           <div className="sr-gauge">
             <CircleGaugeSVG pct={completion} color="#5ab040" />
-            <span>발굴</span>
+            <span>{t('result.excavateLabel')}</span>
           </div>
           <div className="sr-gauge">
             <CircleGaugeSVG pct={conservePct} color="#40a0d0" />
-            <span>보존</span>
+            <span>{t('result.conserveBtn')}</span>
           </div>
         </div>
 
@@ -225,7 +224,7 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
         <div
           className="sr-btns"
           role="group"
-          aria-label="다음 행동 선택 (좌우 방향키로 이동, Enter로 실행)"
+          aria-label={t('result.keyHint')}
         >
           {RESULT_ACTIONS.map(({ action, label }, i) => (
             <button
@@ -243,7 +242,7 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
 
         {/* Keyboard hint */}
         <p className="sr-key-hint" aria-hidden="true">
-          ← → 방향키로 선택 · Enter로 실행
+          {t('result.keyHint')}
         </p>
       </div>
     </div>

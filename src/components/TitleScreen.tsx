@@ -1,154 +1,143 @@
 import { useEffect, useState } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction } from '../types';
+import { useTranslation } from '../i18n';
+import { ASSETS } from '../assets';
 
 interface TitleScreenProps {
   dispatch: Dispatch<GameAction>;
 }
 
-const BrushIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <rect x="14" y="2" width="4" height="16" rx="2" fill="#c8a45a"/>
-    <rect x="12" y="15" width="8" height="4" rx="1.5" fill="#e8c87a"/>
-    <path d="M13 19 Q16 30 16 32" stroke="#c8a45a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-    <path d="M16 19 Q17.5 28 18 32" stroke="#b8943a" strokeWidth="2" fill="none" strokeLinecap="round"/>
-    <path d="M19 19 Q19.5 28 18.5 32" stroke="#b8943a" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+const ShovelIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <rect x="12.5" y="2" width="3" height="14" rx="1.5" fill="#c8a45a"/>
+    <path d="M8 13 Q8 20 14 22 Q20 20 20 13 Z" fill="#c8a45a"/>
+    <rect x="13" y="20" width="2" height="7" rx="1" fill="#a07830"/>
   </svg>
 );
 
-const SearchIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <circle cx="13" cy="13" r="8" stroke="#c8a45a" strokeWidth="2.5" fill="none"/>
-    <circle cx="13" cy="13" r="4" fill="rgba(200,164,90,0.25)"/>
-    <line x1="19" y1="19" x2="28" y2="28" stroke="#c8a45a" strokeWidth="2.5" strokeLinecap="round"/>
-  </svg>
-);
-
-const FossilIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <circle cx="16" cy="16" r="11" stroke="#c8a45a" strokeWidth="1.8" fill="none"/>
-    <circle cx="16" cy="16" r="7.5" stroke="#c8a45a" strokeWidth="1.4" fill="none"/>
-    <circle cx="16" cy="16" r="4" stroke="#c8a45a" strokeWidth="1.2" fill="rgba(200,164,90,0.3)"/>
-    <line x1="16" y1="5" x2="16" y2="27" stroke="rgba(200,164,90,0.5)" strokeWidth="0.8"/>
-    <line x1="5" y1="16" x2="27" y2="16" stroke="rgba(200,164,90,0.5)" strokeWidth="0.8"/>
-    <line x1="8" y1="8" x2="24" y2="24" stroke="rgba(200,164,90,0.35)" strokeWidth="0.8"/>
-    <line x1="24" y1="8" x2="8" y2="24" stroke="rgba(200,164,90,0.35)" strokeWidth="0.8"/>
-  </svg>
-);
-
-const BoneIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <path d="M9 23 L23 9" stroke="#c8a45a" strokeWidth="2.8" strokeLinecap="round"/>
-    <circle cx="7" cy="25" r="3.5" fill="#c8a45a"/>
-    <circle cx="25" cy="7" r="3.5" fill="#c8a45a"/>
-    <circle cx="7" cy="7" r="3" fill="rgba(200,164,90,0.5)" stroke="#c8a45a" strokeWidth="1.2"/>
-    <circle cx="25" cy="25" r="3" fill="rgba(200,164,90,0.5)" stroke="#c8a45a" strokeWidth="1.2"/>
-  </svg>
-);
-
-const BookIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <rect x="4" y="3" width="24" height="26" rx="2.5" fill="none" stroke="#c8a45a" strokeWidth="2"/>
-    <rect x="4" y="3" width="6" height="26" rx="2" fill="rgba(200,164,90,0.2)" stroke="#8b6020" strokeWidth="1"/>
-    <line x1="14" y1="10" x2="23" y2="10" stroke="#c8a45a" strokeWidth="1.4"/>
-    <line x1="14" y1="15" x2="23" y2="15" stroke="#c8a45a" strokeWidth="1.4"/>
-    <line x1="14" y1="20" x2="21" y2="20" stroke="rgba(200,164,90,0.6)" strokeWidth="1.2"/>
+const BackpackIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <rect x="5" y="9" width="18" height="16" rx="3" fill="none" stroke="#c8a45a" strokeWidth="2"/>
+    <path d="M10 9 Q10 4 14 4 Q18 4 18 9" stroke="#c8a45a" strokeWidth="2" fill="none"/>
+    <line x1="5" y1="16" x2="23" y2="16" stroke="#c8a45a" strokeWidth="1.5"/>
+    <rect x="11" y="13" width="6" height="3" rx="1.5" fill="#c8a45a" opacity="0.6"/>
   </svg>
 );
 
 const GearIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <circle cx="10" cy="10" r="3" stroke="#a08050" strokeWidth="1.5" fill="none"/>
-    {[0,45,90,135,180,225,270,315].map((deg, i) => (
+  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+    <circle cx="13" cy="13" r="4" stroke="#c8a45a" strokeWidth="2" fill="none"/>
+    {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
       <line
         key={i}
-        x1={10 + 5 * Math.cos(deg * Math.PI / 180)}
-        y1={10 + 5 * Math.sin(deg * Math.PI / 180)}
-        x2={10 + 8 * Math.cos(deg * Math.PI / 180)}
-        y2={10 + 8 * Math.sin(deg * Math.PI / 180)}
-        stroke="#a08050" strokeWidth="2" strokeLinecap="round"
+        x1={13 + 6.5 * Math.cos((deg * Math.PI) / 180)}
+        y1={13 + 6.5 * Math.sin((deg * Math.PI) / 180)}
+        x2={13 + 10 * Math.cos((deg * Math.PI) / 180)}
+        y2={13 + 10 * Math.sin((deg * Math.PI) / 180)}
+        stroke="#c8a45a" strokeWidth="2.2" strokeLinecap="round"
       />
     ))}
   </svg>
 );
 
-const ProfileIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <circle cx="10" cy="7" r="4" stroke="#a08050" strokeWidth="1.5" fill="none"/>
-    <path d="M3 18 C3 14 6 12 10 12 C14 12 17 14 17 18" stroke="#a08050" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+const GlobeIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+    <circle cx="9" cy="9" r="7.5" stroke="#c8a45a" strokeWidth="1.5" fill="none"/>
+    <ellipse cx="9" cy="9" rx="3" ry="7.5" stroke="#c8a45a" strokeWidth="1.2" fill="none"/>
+    <line x1="1.5" y1="9" x2="16.5" y2="9" stroke="#c8a45a" strokeWidth="1.2"/>
+    <line x1="2.5" y1="5.5" x2="15.5" y2="5.5" stroke="#c8a45a" strokeWidth="1" opacity="0.7"/>
+    <line x1="2.5" y1="12.5" x2="15.5" y2="12.5" stroke="#c8a45a" strokeWidth="1" opacity="0.7"/>
   </svg>
 );
 
-const MENU_BUTTONS = [
-  { label: '발굴', Icon: BrushIcon, key: 'dig' },
-  { label: '탐색', Icon: SearchIcon, key: 'scan' },
-  { label: '발견', Icon: FossilIcon, key: 'found' },
-  { label: '복원', Icon: BoneIcon, key: 'restore' },
-  { label: '수집', Icon: BookIcon, key: 'collect' },
-] as const;
-
 export default function TitleScreen({ dispatch }: TitleScreenProps) {
+  const { t, lang, setLang } = useTranslation();
   const [activeBtn, setActiveBtn] = useState(0);
 
-  const handleStart = () => dispatch({ type: 'SET_SCREEN', screen: 'tutorial' });
-  const handlePlay = () => dispatch({ type: 'SET_SCREEN', screen: 'fossil-select' });
-  const handleCollection = () => dispatch({ type: 'SET_SCREEN', screen: 'collection' });
+  const BUTTONS = [
+    {
+      key: 'play',
+      Icon: ShovelIcon,
+      label: t('intro.menuDig'),
+      action: () => dispatch({ type: 'SET_SCREEN', screen: 'fossil-select' }),
+    },
+    {
+      key: 'collection',
+      Icon: BackpackIcon,
+      label: t('common.collection'),
+      action: () => dispatch({ type: 'SET_SCREEN', screen: 'collection' }),
+    },
+    {
+      key: 'settings',
+      Icon: GearIcon,
+      label: t('common.settings'),
+      action: () => dispatch({ type: 'SET_SCREEN', screen: 'tutorial' }),
+    },
+  ];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft')  setActiveBtn(b => Math.max(0, b - 1));
+      if (e.key === 'ArrowRight') setActiveBtn(b => Math.min(2, b + 1));
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        if (activeBtn === 4) handleCollection();
-        else if (activeBtn === 0) handlePlay();
-        else handleStart();
+        BUTTONS[activeBtn]?.action();
       }
-      if (e.key === 'ArrowLeft') setActiveBtn(b => Math.max(0, b - 1));
-      if (e.key === 'ArrowRight') setActiveBtn(b => Math.min(4, b + 1));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeBtn]);
+  }, [activeBtn, lang]);
 
   return (
-    <div className="title-screen-img" role="main" aria-label="Dot Fossil 타이틀 화면">
-      {/* Reference image fills entire screen */}
-
-      {/* Interactive layer: bottom overlay with menu */}
-      <div className="title-bottom-overlay">
-        <nav className="title-menu-img" aria-label="메인 메뉴">
-          <div className="menu-nav-buttons-img" role="menubar">
-            {MENU_BUTTONS.map((btn, i) => (
-              <button
-                key={btn.key}
-                className={`menu-btn-img${i === activeBtn ? ' active' : ''}`}
-                role="menuitem"
-                aria-current={i === activeBtn ? 'true' : undefined}
-                autoFocus={i === 0}
-                onClick={() => {
-                  setActiveBtn(i);
-                  if (btn.key === 'collect') handleCollection();
-                  else if (btn.key === 'dig') handlePlay();
-                  else handleStart();
-                }}
-              >
-                <span className="menu-btn-img-icon"><btn.Icon /></span>
-                <span className="menu-btn-img-label">{btn.label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
-
-        <div className="title-footer-img">
-          <button className="footer-icon-btn-img" aria-label="설정">
-            <GearIcon />
-          </button>
-          <span className="footer-enter-hint-img">[ Enter 를 눌러 시작 ]</span>
-          <button className="footer-icon-btn-img" aria-label="프로필">
-            <ProfileIcon />
-          </button>
-        </div>
+    <div
+      className="title-new"
+      role="main"
+      aria-label="Dot Fossil"
+      style={{ backgroundImage: `url('${ASSETS.screens.title}')` }}
+    >
+      {/* ── Subtitle overlay — covers baked-in "촉각 발굴단" on sign ── */}
+      <div className="title-subtitle-wrap" aria-hidden="true">
+        <span className="title-subtitle-dash">—</span>
+        <span className="title-subtitle-text">{t('intro.subtitle')}</span>
+        <span className="title-subtitle-dash">—</span>
       </div>
+
+      {/* ── Tagline overlay — covers baked-in scroll text ── */}
+      <p className="title-tagline-wrap">
+        {t('intro.tagline')}
+      </p>
+
+      {/* ── Three pill buttons ── */}
+      <nav className="title-pill-nav" aria-label="메인 메뉴">
+        {BUTTONS.map((btn, i) => (
+          <button
+            key={btn.key}
+            className={`title-pill-btn${i === activeBtn ? ' active' : ''}`}
+            onClick={btn.action}
+            aria-label={btn.label}
+            aria-current={i === activeBtn ? 'true' : undefined}
+            autoFocus={i === 0}
+          >
+            <span className="title-pill-icon"><btn.Icon /></span>
+            <span className="title-pill-label">{btn.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* ── Language toggle — bottom right ── */}
+      <button
+        className="title-lang-btn"
+        onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')}
+        aria-label="언어 전환 / Switch language"
+      >
+        <GlobeIcon />
+        <span>{t(`lang.${lang}`)}</span>
+      </button>
+
+      {/* ── Version ── */}
+      <div className="title-version" aria-hidden="true">v1.0.0</div>
     </div>
   );
 }
