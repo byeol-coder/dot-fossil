@@ -6,21 +6,35 @@ import GameAssetImage from './GameAssetImage';
 
 // Map fossil id → asset image
 const FOSSIL_IMG: Record<string, string> = {
-  rib:          ASSETS.fossils.rib,
-  shell:        ASSETS.fossils.ammonite,
-  skull:        ASSETS.fossils.skull,
-  leaf:         ASSETS.fossils.leaf,
-  skull_demo:   ASSETS.fossils.skull,
-  leaf_demo:    ASSETS.fossils.leaf,
-  vertebra:     ASSETS.fossils.vertebra,
-  claw:         ASSETS.fossils.claw,
-  tooth:        ASSETS.fossils.tooth,
-  fish:         ASSETS.fossils.fish,
-  footprint:    ASSETS.fossils.footprint,
-  ammonite:     ASSETS.fossils.ammonite,
-  pottery:      ASSETS.fossils.pottery,
-  medallion:    ASSETS.fossils.medallion,
-  bone_fragment: ASSETS.fossils.boneFragment,
+  rib:             ASSETS.fossils.rib,
+  shell:           ASSETS.fossils.ammonite,
+  skull:           ASSETS.fossils.skull,
+  leaf:            ASSETS.fossils.leaf,
+  skull_demo:      ASSETS.fossils.skull,
+  leaf_demo:       ASSETS.fossils.leaf,
+  vertebra:        ASSETS.fossils.vertebra,
+  claw:            ASSETS.fossils.claw,
+  tooth:           ASSETS.fossils.tooth,
+  fish:            ASSETS.fossils.fish,
+  footprint:       ASSETS.fossils.footprint,
+  ammonite:        ASSETS.fossils.ammonite,
+  pottery:         ASSETS.fossils.pottery,
+  medallion:       ASSETS.fossils.medallion,
+  bone_fragment:   ASSETS.fossils.boneFragment,
+  legfoot:         ASSETS.fossils.legfoot,
+  partialSkeleton: ASSETS.fossils.partialSkeleton,
+};
+
+// Map dinosaur species id → asset image
+const DINOSAUR_IMG: Record<string, string> = {
+  'tyrannosaurus-rex':   ASSETS.dinosaurs.tyrannosaurusRex,
+  velociraptor:          ASSETS.dinosaurs.velociraptor,
+  brachiosaurus:         ASSETS.dinosaurs.brachiosaurus,
+  spinosaurus:           ASSETS.dinosaurs.spinosaurus,
+  ankylosaurus:          ASSETS.dinosaurs.ankylosaurus,
+  dilophosaurus:         ASSETS.dinosaurs.dilophosaurus,
+  parasaurolophus:       ASSETS.dinosaurs.parasaurolophus,
+  pachycephalosaurus:    ASSETS.dinosaurs.pachycephalosaurus,
 };
 
 const CATEGORIES = [
@@ -58,6 +72,7 @@ export default function CollectionBook({ collectedFossils, fossilPieces, totalPi
     nameEn: fd.nameEn,
     pieces: fd.pieces,
     description: fd.description,
+    dinosaur: fd.dinosaur,
     isLocked: false,
   }));
 
@@ -122,6 +137,8 @@ export default function CollectionBook({ collectedFossils, fossilPieces, totalPi
               const collected = collectedFossils.includes(fossil.id);
               const piecesFound = fossilPieces.filter(fp => fp.fossilId === fossil.id && fp.found).length;
               const fossilImg = FOSSIL_IMG[fossil.id];
+              const dinoId = (fossil as { dinosaur?: string }).dinosaur;
+              const dinoImg = dinoId ? DINOSAUR_IMG[dinoId] : undefined;
 
               return (
                 <div
@@ -165,6 +182,20 @@ export default function CollectionBook({ collectedFossils, fossilPieces, totalPi
                       />
                     )}
                   </div>
+
+                  {/* Dinosaur origin reveal — only shown when collected */}
+                  {collected && dinoImg && (
+                    <div className="fossil-dino-reveal" aria-label={`발굴 생물: ${dinoId}`}>
+                      <GameAssetImage
+                        src={dinoImg}
+                        alt={dinoId ?? ''}
+                        className="fossil-dino-img"
+                        style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+                      />
+                      <span className="fossil-dino-label">발굴 생물</span>
+                    </div>
+                  )}
+
                   <div className="fossil-card-info">
                     <div className="fossil-name">{fossil.isLocked ? '???' : fossil.name}</div>
                     <div className="fossil-name-en">{fossil.isLocked ? '???' : fossil.nameEn}</div>

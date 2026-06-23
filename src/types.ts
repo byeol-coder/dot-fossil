@@ -39,6 +39,7 @@ export interface FossilDef {
   nameEn: string;
   pieces: number;
   description: string;
+  dinosaur?: string; // dinosaur species id that this fossil belongs to
 }
 
 export interface Stage {
