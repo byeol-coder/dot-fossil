@@ -4,7 +4,9 @@ import type { GameState, GameAction, ToolType } from '../types';
 import { STAGES } from '../data/stages';
 import { TOOL_DEFS } from '../data/tools';
 import { renderToDotGrid } from '../dotpad/tactilePatterns';
-import { useDotPad } from '../dotpad/useDotPad';
+import type { DotGrid } from '../dotpad/tactilePatterns';
+import type { DotPadStatus } from '../dotpad/useDotPad';
+import { getFossilPattern } from '../dotpad/fossilPatterns';
 import DotPadPreview from './DotPadPreview';
 import BrailleMessageBar from './BrailleMessageBar';
 import DotPadConnector from './DotPadConnector';
@@ -151,6 +153,11 @@ function DamageWarningPopup({
 interface DigScreenProps {
   state: GameState;
   dispatch: Dispatch<GameAction>;
+  dotpadStatus: DotPadStatus;
+  connect: () => void;
+  disconnect: () => void;
+  sendGrid: (g: DotGrid) => void;
+  sendRawHex: (h: string) => void;
 }
 
 function AmmoniteSVG() {
@@ -167,7 +174,7 @@ function AmmoniteSVG() {
   );
 }
 
-export default function DigScreen({ state, dispatch }: DigScreenProps) {
+export default function DigScreen({ state, dispatch, dotpadStatus, connect, disconnect, sendGrid, sendRawHex }: DigScreenProps) {
   const stage = STAGES[state.stageId];
   const { completion, damage, foundPieces, totalPieces, currentTool, characterAction } = state;
 
@@ -180,19 +187,22 @@ export default function DigScreen({ state, dispatch }: DigScreenProps) {
     [state.grid, state.cursor, stage],
   );
 
-  const { status: dotpadStatus, connect, disconnect, sendGrid } = useDotPad(dispatch);
-
   useEffect(() => {
     sendGrid(dotGrid);
   }, [dotGrid, sendGrid]);
 
-  // Fossil piece found popup
+  // Fossil piece found popup — also send the fossil's tactile pattern to DotPad
   useEffect(() => {
     if (state.foundPieces > prevFoundPieces.current && digView === 'playing') {
       setDigView('fossil-found');
+      const fossilId = stage?.fossils[0]?.fossilId;
+      if (fossilId) {
+        const pattern = getFossilPattern(fossilId);
+        if (pattern) sendRawHex(pattern);
+      }
     }
     prevFoundPieces.current = state.foundPieces;
-  }, [state.foundPieces, digView]);
+  }, [state.foundPieces, digView, stage, sendRawHex]);
 
   // Damage warning popup (once)
   useEffect(() => {

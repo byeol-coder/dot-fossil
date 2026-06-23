@@ -2,6 +2,7 @@ import { useReducer, useEffect, useRef } from 'react';
 import { createInitialState, gameReducer } from '../core/gameState';
 import { usePanningInput } from '../dotpad/panningInput';
 import { useKeyboardInput } from '../input/keyboardInput';
+import { useDotPad } from '../dotpad/useDotPad';
 import TitleScreen from './TitleScreen';
 import TutorialScreen from './TutorialScreen';
 import FossilSelectScreen from './FossilSelectScreen';
@@ -15,6 +16,9 @@ const INITIAL_STAGE = 'desert_rib';
 export default function GameApp() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STAGE, createInitialState);
   const prevScreen = useRef(state.screen);
+
+  // DotPad connection lives here so it persists across screen transitions
+  const { status: dotpadStatus, connect, disconnect, sendGrid, sendRawHex } = useDotPad(dispatch);
 
   // Panning input always active
   usePanningInput(dispatch);
@@ -47,9 +51,19 @@ export default function GameApp() {
     case 'stage-enter':
       return <StageEnterScreen state={state} dispatch={dispatch} />;
     case 'game':
-      return <DigScreen state={state} dispatch={dispatch} />;
+      return (
+        <DigScreen
+          state={state}
+          dispatch={dispatch}
+          dotpadStatus={dotpadStatus}
+          connect={connect}
+          disconnect={disconnect}
+          sendGrid={sendGrid}
+          sendRawHex={sendRawHex}
+        />
+      );
     case 'stage-result':
-      return <StageResultScreen state={state} dispatch={dispatch} />;
+      return <StageResultScreen state={state} dispatch={dispatch} sendRawHex={sendRawHex} />;
     case 'collection':
       return (
         <CollectionBook
@@ -57,6 +71,7 @@ export default function GameApp() {
           fossilPieces={state.fossilPieces}
           totalPieces={state.totalPieces}
           dispatch={dispatch}
+          sendRawHex={sendRawHex}
         />
       );
     default:

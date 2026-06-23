@@ -3,6 +3,7 @@ import type { Dispatch } from 'react';
 import type { GameAction, GameState } from '../types';
 import { STAGES } from '../data/stages';
 import { ASSETS } from '../assets';
+import { getFossilPattern } from '../dotpad/fossilPatterns';
 import GameAssetImage from './GameAssetImage';
 
 const FOSSIL_IMG: Record<string, string> = {
@@ -69,14 +70,22 @@ function CircleGaugeSVG({ pct, color }: { pct: number; color: string }) {
 interface StageResultScreenProps {
   state: GameState;
   dispatch: Dispatch<GameAction>;
+  sendRawHex: (h: string) => void;
 }
 
-export default function StageResultScreen({ state, dispatch }: StageResultScreenProps) {
+export default function StageResultScreen({ state, dispatch, sendRawHex }: StageResultScreenProps) {
   const stage = STAGES[state.stageId] ?? STAGES['desert_rib'];
   const stars = starRating(state.completion, state.damage);
   const conservePct = Math.max(0, 100 - state.damage);
   const mainFossilId = stage.fossils[0]?.fossilId ?? '';
   const fossilImg = FOSSIL_IMG[mainFossilId] ?? '';
+
+  // Show the completed fossil's tactile pattern on DotPad when result screen opens
+  useEffect(() => {
+    const pattern = getFossilPattern(mainFossilId);
+    if (pattern) sendRawHex(pattern);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const goCollection = useCallback(() => {
     dispatch({ type: 'SET_SCREEN', screen: 'collection' });

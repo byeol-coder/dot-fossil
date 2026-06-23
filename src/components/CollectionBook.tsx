@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction, FossilPiece } from '../types';
 import { FOSSIL_DEFS } from '../data/fossils';
 import { ASSETS } from '../assets';
+import { getFossilPattern } from '../dotpad/fossilPatterns';
 import GameAssetImage from './GameAssetImage';
 
 const FOSSIL_IMG: Record<string, string> = {
@@ -48,9 +49,10 @@ interface CollectionBookProps {
   fossilPieces: FossilPiece[];
   totalPieces: number;
   dispatch: Dispatch<GameAction>;
+  sendRawHex: (h: string) => void;
 }
 
-export default function CollectionBook({ collectedFossils, fossilPieces, dispatch }: CollectionBookProps) {
+export default function CollectionBook({ collectedFossils, fossilPieces, dispatch, sendRawHex }: CollectionBookProps) {
   const [page, setPage] = useState(0);
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -62,6 +64,13 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
     (id: string) => collectedFossils.includes(id),
     [collectedFossils],
   );
+
+  // Send tactile pattern to DotPad whenever the active fossil card changes
+  useEffect(() => {
+    if (!activeCard) return;
+    const pattern = getFossilPattern(activeCard.id);
+    if (pattern) sendRawHex(pattern);
+  }, [activeCard, sendRawHex]);
 
   const piecesFound = activeCard
     ? fossilPieces.filter(fp => fp.fossilId === activeCard.id && fp.found).length

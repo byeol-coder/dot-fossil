@@ -80,5 +80,10 @@ export function useDotPad(dispatch: Dispatch<GameAction>) {
     sdk.current.displayGraphicData(hex);
   }, [status]);
 
-  return { status, connect, disconnect, sendGrid };
+  const sendRawHex = useCallback((hex: string) => {
+    if (status !== 'connected' || !sdk.current) return;
+    sdk.current.displayGraphicData(hex);
+  }, [status]);
+
+  return { status, connect, disconnect, sendGrid, sendRawHex };
 }
