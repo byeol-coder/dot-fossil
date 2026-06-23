@@ -3490,3 +3490,70 @@ html, body {
   from { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
   to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
+
+/* ── Fossil Reveal Layer ─────────────────────────────────────────────────── */
+.fossil-reveal-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fossil-piece-overlay {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease, filter 200ms ease;
+}
+
+.fossil-piece-overlay.stage-hidden  { opacity: 0; }
+
+.fossil-piece-overlay.stage-hint {
+  opacity: 0.22;
+  filter: blur(1.2px);
+}
+
+.fossil-piece-overlay.stage-partial {
+  opacity: 0.48;
+  filter: blur(0.5px);
+}
+
+.fossil-piece-overlay.stage-clear {
+  opacity: 0.78;
+}
+
+.fossil-piece-overlay.stage-almost {
+  opacity: 0.95;
+  transform: translate(-50%, -50%) scale(1.06);
+  filter: drop-shadow(0 0 8px rgba(255, 210, 80, 0.65));
+  animation: fossil-almost-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.fossil-piece-overlay.stage-found {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.12);
+  filter: drop-shadow(0 0 16px rgba(255, 195, 60, 0.9));
+  animation: fossil-found-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fossil-piece-overlay.is-damaged {
+  filter: drop-shadow(0 0 8px rgba(255, 60, 40, 0.75));
+}
+
+.fossil-piece-overlay.stage-almost.is-damaged {
+  filter: drop-shadow(0 0 8px rgba(255, 60, 40, 0.75));
+  animation: none;
+}
+
+@keyframes fossil-almost-pulse {
+  from { filter: drop-shadow(0 0 6px rgba(255, 210, 80, 0.45)); }
+  to   { filter: drop-shadow(0 0 14px rgba(255, 210, 80, 0.85)); }
+}
+
+@keyframes fossil-found-pop {
+  0%   { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
+  60%  { transform: translate(-50%, -50%) scale(1.18); }
+  100% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+}

@@ -6,6 +6,21 @@ export type Screen = 'title' | 'tutorial' | 'fossil-select' | 'stage-enter' | 'g
 export type ExcavationGrade = 'clean' | 'good' | 'restore_needed';
 export type ResultAction = 'next_fossil' | 'collection' | 'retry' | 'home';
 
+export type RevealStage = 'hidden' | 'hint' | 'partial' | 'clear' | 'almost' | 'found';
+
+export type FossilVisualType =
+  | 'tooth' | 'rib' | 'skull' | 'horn' | 'plate'
+  | 'claw' | 'footprint' | 'vertebra' | 'shell' | 'leaf';
+
+export function getRevealStage(progress: number): RevealStage {
+  if (progress >= 100) return 'found';
+  if (progress >= 75)  return 'almost';
+  if (progress >= 50)  return 'clear';
+  if (progress >= 25)  return 'partial';
+  if (progress > 0)    return 'hint';
+  return 'hidden';
+}
+
 export interface DigCell {
   x: number;
   y: number;
@@ -32,9 +47,13 @@ export interface Clue {
 export interface FossilPiece {
   id: string;
   fossilId: string;
+  visualType: FossilVisualType;
   cells: { x: number; y: number }[];
   found: boolean;
-  damage: number;
+  damage: number;       // 0-1 accumulated damage
+  damaged: boolean;     // true once damage > 0.05
+  revealProgress: number; // 0-100, avg of all cells
+  stage: RevealStage;
 }
 
 export interface FossilDef {

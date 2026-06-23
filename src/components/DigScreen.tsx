@@ -11,6 +11,7 @@ import DotPadPreview from './DotPadPreview';
 import BrailleMessageBar from './BrailleMessageBar';
 import DotPadConnector from './DotPadConnector';
 import GameAssetImage from './GameAssetImage';
+import FossilRevealLayer from './FossilRevealLayer';
 import { ASSETS, TOOL_ASSET, CHARACTER_ACTION_ASSET } from '../assets';
 
 const TOOL_LIST: ToolType[] = ['brush', 'careful_dig', 'probe'];
@@ -247,8 +248,13 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         className={`gw-dig-board${damage > 60 ? ' danger' : characterAction === 'found' ? ' found' : ''}`}
         aria-label="발굴 지도"
       >
-        <div className="gw-dig-board-inner">
+        <div className="gw-dig-board-inner" style={{ position: 'relative' }}>
           <DotPadPreview dotGrid={dotGrid} />
+          <FossilRevealLayer
+            fossilPieces={state.fossilPieces}
+            stageWidth={stage?.width ?? 20}
+            stageHeight={stage?.height ?? 14}
+          />
         </div>
       </div>
 

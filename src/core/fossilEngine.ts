@@ -1,4 +1,4 @@
-import type { Stage, DigCell, CellType, Clue, FossilPiece } from '../types';
+import type { Stage, DigCell, CellType, Clue, FossilPiece, FossilVisualType } from '../types';
 
 // Simple deterministic pseudo-random using LCG
 function makePrng(seed: number) {
@@ -12,6 +12,22 @@ function makePrng(seed: number) {
 function makeCell(x: number, y: number, type: CellType, depth: number, fragile = 0): DigCell {
   return { x, y, type, depth, revealed: false, fragile, damage: 0 };
 }
+
+const FOSSIL_VISUAL_TYPE: Record<string, FossilVisualType> = {
+  rib:             'rib',
+  shell:           'shell',
+  skull:           'skull',
+  tooth:           'tooth',
+  claw:            'claw',
+  vertebra:        'vertebra',
+  leaf:            'leaf',
+  footprint:       'footprint',
+  horn:            'horn',
+  plate:           'plate',
+  fish:            'rib',
+  legfoot:         'footprint',
+  partialSkeleton: 'skull',
+};
 
 export function generateGrid(stage: Stage): {
   grid: DigCell[][];
@@ -51,19 +67,21 @@ export function generateGrid(stage: Stage): {
   const clues: Clue[] = [];
   const occupiedCells = new Set<string>();
 
-  // Fossil definitions to place
-  const fossilsToPlace: { fossilId: string; pieceCount: number }[] = [
-    { fossilId: 'rib', pieceCount: 3 },
-    { fossilId: 'shell', pieceCount: 1 },
-  ];
+  // Fossil definitions to place — driven by stage.fossils when available
+  const fossilsToPlace: { fossilId: string; pieceCount: number }[] =
+    stage.fossils.length > 0
+      ? stage.fossils.map(f => ({ fossilId: f.fossilId, pieceCount: f.count }))
+      : [
+          { fossilId: 'rib',   pieceCount: 3 },
+          { fossilId: 'shell', pieceCount: 1 },
+        ];
 
   let pieceCounter = 0;
 
   for (const fossil of fossilsToPlace) {
-    const pieceCells: { x: number; y: number }[][] = [];
+    const visualType: FossilVisualType = FOSSIL_VISUAL_TYPE[fossil.fossilId] ?? 'rib';
 
     for (let p = 0; p < fossil.pieceCount; p++) {
-      // Find a free position
       let placed = false;
       let attempts = 0;
       while (!placed && attempts < 200) {
@@ -75,27 +93,21 @@ export function generateGrid(stage: Stage): {
           occupiedCells.add(key);
           const cells = [{ x: fx, y: fy }];
 
-          // Try to extend rib pieces
-          if (fossil.fossilId === 'rib' && p < fossil.pieceCount) {
-            const directions = [
-              { dx: 1, dy: 0 },
-              { dx: 0, dy: 1 },
-              { dx: -1, dy: 0 },
-              { dx: 0, dy: -1 },
-            ];
-            const dir = directions[Math.floor(rand() * directions.length)];
-            const nx = fx + dir.dx;
-            const ny = fy + dir.dy;
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-              const nkey = `${nx},${ny}`;
-              if (!occupiedCells.has(nkey)) {
-                occupiedCells.add(nkey);
-                cells.push({ x: nx, y: ny });
-              }
+          // Extend piece by 1 adjacent cell (for multi-cell fossils)
+          const directions = [
+            { dx: 1, dy: 0 }, { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 }, { dx: 0, dy: -1 },
+          ];
+          const dir = directions[Math.floor(rand() * directions.length)];
+          const nx = fx + dir.dx;
+          const ny = fy + dir.dy;
+          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            const nkey = `${nx},${ny}`;
+            if (!occupiedCells.has(nkey)) {
+              occupiedCells.add(nkey);
+              cells.push({ x: nx, y: ny });
             }
           }
-
-          pieceCells.push(cells);
 
           // Paint cells in grid
           const pieceId = `${fossil.fossilId}_${p}`;
@@ -114,9 +126,13 @@ export function generateGrid(stage: Stage): {
           fossilPieces.push({
             id: pieceId,
             fossilId: fossil.fossilId,
+            visualType,
             cells,
             found: false,
             damage: 0,
+            damaged: false,
+            revealProgress: 0,
+            stage: 'hidden',
           });
 
           // Create a clue near the fossil
@@ -124,13 +140,19 @@ export function generateGrid(stage: Stage): {
           const cx = Math.max(0, Math.min(width - 1, fx + Math.floor((rand() - 0.5) * 3)));
           const cy = Math.max(0, Math.min(height - 1, fy + Math.floor((rand() - 0.5) * 3)));
           if (pieceCounter < 4) {
+            const clueDesc =
+              visualType === 'rib'   ? '곡선 반응' :
+              visualType === 'shell' ? '나선형 반응' :
+              visualType === 'tooth' ? '뾰족한 반응' :
+              visualType === 'skull' ? '둥근 윤곽 반응' :
+              '곡선 반응';
             clues.push({
               id: `clue_${pieceCounter}`,
               x: cx,
               y: cy,
               radius: clueRadius,
               fossilId: fossil.fossilId,
-              description: fossil.fossilId === 'rib' ? '곡선 반응' : '나선형 반응',
+              description: clueDesc,
               discovered: false,
             });
           }
