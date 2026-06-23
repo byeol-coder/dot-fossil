@@ -22,7 +22,7 @@ export const ko = {
   tutorial: {
     title: "튜토리얼 안내",
     dialogues: [
-      "안녕! 나는 도티야.",
+      "안녕! 나는 탐이야.",
       "오늘도 촉각으로 화석을 찾아보자!",
       "닷패드 위의 땅을 천천히 만져봐.",
       "낮은 점은 흙, 굵은 덩어리는 돌이야.",
@@ -87,7 +87,7 @@ export const ko = {
   },
 
   braille: {
-    helloDoti: "안녕 나는 도티",
+    helloDoti: "안녕 나는 탐이",
     fossilSelect: "화석 선택",
     stageEnter: "발굴지 도착",
     curveDetected: "곡선 반응",

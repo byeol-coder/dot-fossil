@@ -18,7 +18,7 @@ export const TOOL_DEFS: Record<ToolType, ToolDef> = {
     shortcut: '1',
     removeDepth: 1,
     damageRisk: 0,
-    radius: 1,
+    radius: 2,
   },
   careful_dig: {
     id: 'careful_dig',
@@ -27,15 +27,15 @@ export const TOOL_DEFS: Record<ToolType, ToolDef> = {
     shortcut: '2',
     removeDepth: 2,
     damageRisk: 0.08,
-    radius: 1,
+    radius: 2,
   },
   probe: {
     id: 'probe',
     name: '탐침',
-    description: '흙을 제거하지 않고 주변 3칸을 탐지합니다.',
+    description: '흙을 제거하지 않고 주변 4칸을 탐지합니다.',
     shortcut: '3',
     removeDepth: 0,
     damageRisk: 0,
-    radius: 3,
+    radius: 4,
   },
 };

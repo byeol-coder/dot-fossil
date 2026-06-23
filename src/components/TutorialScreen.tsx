@@ -11,7 +11,7 @@ interface TutorialStep {
   text: string;
 }
 
-const CHAR_NAME = '도티';
+const CHAR_NAME = '탐이';
 
 const STEP_TITLES = [
   `탐험가 ${CHAR_NAME}를 소개해요`,

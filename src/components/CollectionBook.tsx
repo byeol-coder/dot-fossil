@@ -163,7 +163,7 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        aria-label="도티의 메시지"
+        aria-label="탐이의 메시지"
       >
         <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{speechText}</p>
       </div>
