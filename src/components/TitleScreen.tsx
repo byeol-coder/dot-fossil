@@ -90,7 +90,7 @@ const MENU_BUTTONS = [
 export default function TitleScreen({ dispatch }: TitleScreenProps) {
   const [activeBtn, setActiveBtn] = useState(0);
 
-  const handleStart = () => dispatch({ type: 'SET_SCREEN', screen: 'game' });
+  const handleStart = () => dispatch({ type: 'SET_SCREEN', screen: 'tutorial' });
   const handleCollection = () => dispatch({ type: 'SET_SCREEN', screen: 'collection' });
 
   useEffect(() => {

@@ -2,7 +2,7 @@ export type GameMode = 'clue_scan' | 'precision_dig' | 'collection';
 export type ToolType = 'brush' | 'careful_dig' | 'probe';
 export type CellType = 'soil' | 'hard_soil' | 'rock' | 'fossil' | 'crack' | 'empty' | 'revealed';
 export type CharacterAction = 'idle' | 'move' | 'brush' | 'dig' | 'probe' | 'found' | 'warning';
-export type Screen = 'title' | 'game' | 'collection';
+export type Screen = 'title' | 'tutorial' | 'game' | 'collection';
 
 export interface DigCell {
   x: number;

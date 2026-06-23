@@ -3,6 +3,7 @@ import { createInitialState, gameReducer } from '../core/gameState';
 import { usePanningInput } from '../dotpad/panningInput';
 import { useKeyboardInput } from '../input/keyboardInput';
 import TitleScreen from './TitleScreen';
+import TutorialScreen from './TutorialScreen';
 import DigScreen from './DigScreen';
 import CollectionBook from './CollectionBook';
 
@@ -37,6 +38,8 @@ export default function GameApp() {
   switch (state.screen) {
     case 'title':
       return <TitleScreen dispatch={dispatch} />;
+    case 'tutorial':
+      return <TutorialScreen dispatch={dispatch} />;
     case 'game':
       return <DigScreen state={state} dispatch={dispatch} />;
     case 'collection':

@@ -113,6 +113,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SET_SCREEN': {
       const screenNames: Record<Screen, string> = {
         title: '타이틀',
+        tutorial: '튜토리얼',
         game: '게임 시작',
         collection: '도감',
       };

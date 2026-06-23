@@ -6,6 +6,7 @@ export const ASSETS = {
     intro:      `${B}assets/reference/dot-fossil-intro-reference.png`,
     gameplay:   `${B}assets/reference/dot-fossil-gameplay-reference.png`,
     collection: `${B}assets/reference/dot-fossil-collection-reference.png`,
+    tutorial:   `${B}assets/reference/tutorial-dialogue-screen-bg.png`,
   },
 
   character: {

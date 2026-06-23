@@ -2168,3 +2168,214 @@ html, body {
   color: rgba(200,90,90,0.7);
   text-align: center;
 }
+
+/* ======================================================
+   TUTORIAL SCREEN
+   ====================================================== */
+.tutorial-screen {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  font-family: var(--font-main);
+  user-select: none;
+}
+
+/* ── Skip button ── */
+.tutorial-skip-btn {
+  position: absolute;
+  top: 3.5%;
+  right: 2%;
+  z-index: 10;
+  background: rgba(240, 230, 200, 0.88);
+  border: 1.5px solid #8b6030;
+  border-radius: 10px;
+  padding: 5px 18px;
+  font-size: 0.78rem;
+  color: #5a3a10;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: background 0.15s;
+}
+.tutorial-skip-btn:hover {
+  background: rgba(220, 200, 160, 0.98);
+}
+
+/* ── Stone title banner ── */
+.tutorial-title-banner {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: linear-gradient(135deg, rgba(210,185,140,0.97), rgba(190,160,110,0.97));
+  border: 2px solid #7a5020;
+  border-radius: 10px;
+  padding: 7px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #3a2008;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
+  letter-spacing: 0.02em;
+}
+
+/* ── Character ── */
+.tutorial-character-wrap {
+  position: absolute;
+  left: 0;
+  bottom: 8%;
+  height: 82%;
+  width: 28%;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+.tutorial-character-img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
+}
+
+/* ── Speech bubble ── */
+.tutorial-bubble {
+  position: absolute;
+  left: 27%;
+  top: 11%;
+  width: 62%;
+  height: 52%;
+  background: rgba(255, 252, 238, 0.96);
+  border: 2.5px solid #8b6030;
+  border-radius: 20px;
+  padding: 28px 32px;
+  z-index: 6;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.28);
+  display: flex;
+  align-items: center;
+}
+
+/* Bubble tail pointing left toward character */
+.tutorial-bubble::before {
+  content: '';
+  position: absolute;
+  left: -22px;
+  bottom: 28%;
+  border: 11px solid transparent;
+  border-right-color: #8b6030;
+}
+.tutorial-bubble::after {
+  content: '';
+  position: absolute;
+  left: -16px;
+  bottom: calc(28% + 3px);
+  border: 8px solid transparent;
+  border-right-color: rgba(255, 252, 238, 0.96);
+}
+
+.tutorial-bubble-text {
+  font-size: 1rem;
+  line-height: 1.9;
+  color: #3a2008;
+  white-space: pre-line;
+  margin: 0;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+/* ── Character name plate ── */
+.tutorial-name-plate {
+  position: absolute;
+  bottom: 9%;
+  left: 7%;
+  z-index: 8;
+  background: linear-gradient(135deg, rgba(220,198,155,0.97), rgba(200,170,110,0.97));
+  border: 2px solid #7a5020;
+  border-radius: 9px;
+  padding: 6px 24px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #3a2008;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  letter-spacing: 0.05em;
+}
+
+/* ── Navigation bar ── */
+.tutorial-nav {
+  position: absolute;
+  bottom: 6%;
+  right: 3.5%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tutorial-step-dots {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.tutorial-step-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(139, 96, 48, 0.28);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.18s, transform 0.18s;
+}
+.tutorial-step-dot.active {
+  background: #8b6030;
+  transform: scale(1.25);
+}
+.tutorial-step-dot:hover:not(.active) {
+  background: rgba(139, 96, 48, 0.55);
+}
+
+.tutorial-prev-btn {
+  background: rgba(230, 210, 170, 0.92);
+  border: 1.5px solid #8b6030;
+  border-radius: 20px;
+  color: #5a3a10;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: background 0.15s;
+}
+.tutorial-prev-btn:hover {
+  background: rgba(210, 185, 130, 0.98);
+}
+
+.tutorial-next-btn {
+  background: linear-gradient(135deg, #6abf50, #4a9a2c);
+  border: 2px solid #357a1e;
+  border-radius: 24px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 10px 30px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: filter 0.15s, transform 0.1s;
+  letter-spacing: 0.02em;
+}
+.tutorial-next-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.tutorial-next-btn:active {
+  transform: translateY(0);
+}
