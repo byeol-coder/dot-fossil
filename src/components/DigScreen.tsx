@@ -1,9 +1,13 @@
+import { useMemo, useEffect } from 'react';
 import type { Dispatch } from 'react';
 import type { GameState, GameAction } from '../types';
 import { STAGES } from '../data/stages';
+import { renderToDotGrid } from '../dotpad/tactilePatterns';
+import { useDotPad } from '../dotpad/useDotPad';
 import ToolPanel from './ToolPanel';
 import DotPadPreview from './DotPadPreview';
 import BrailleMessageBar from './BrailleMessageBar';
+import DotPadConnector from './DotPadConnector';
 
 interface DigScreenProps {
   state: GameState;
@@ -37,6 +41,20 @@ export default function DigScreen({ state, dispatch }: DigScreenProps) {
   const stage = STAGES[state.stageId];
   const { completion, damage, foundPieces, totalPieces } = state;
 
+  // Lift dotGrid so both canvas and hardware DotPad share the same data
+  const dotGrid = useMemo(
+    () => renderToDotGrid(state.grid, state.cursor, stage?.width ?? 20, stage?.height ?? 14),
+    [state.grid, state.cursor, stage],
+  );
+
+  // DotPad hardware connection
+  const { status: dotpadStatus, connect, disconnect, sendGrid } = useDotPad(dispatch);
+
+  // Mirror game state to hardware on every grid/cursor change
+  useEffect(() => {
+    sendGrid(dotGrid);
+  }, [dotGrid, sendGrid]);
+
   return (
     <div
       className="game-screen-img"
@@ -52,12 +70,7 @@ export default function DigScreen({ state, dispatch }: DigScreenProps) {
 
       {/* ── Center: DotPad canvas overlay ── */}
       <div className="game-dotpad-overlay">
-        <DotPadPreview
-          grid={state.grid}
-          cursor={state.cursor}
-          stageWidth={stage?.width ?? 20}
-          stageHeight={stage?.height ?? 14}
-        />
+        <DotPadPreview dotGrid={dotGrid} />
       </div>
 
       {/* ── Right: Stats + items overlay ── */}
@@ -103,10 +116,7 @@ export default function DigScreen({ state, dispatch }: DigScreenProps) {
         {/* Fossil piece slots */}
         <div className="game-fossil-slots" aria-label={`발견 조각 ${foundPieces}/${totalPieces}`}>
           {Array.from({ length: totalPieces }).map((_, i) => (
-            <div
-              key={i}
-              className={`game-fossil-slot${i < foundPieces ? ' found' : ''}`}
-            >
+            <div key={i} className={`game-fossil-slot${i < foundPieces ? ' found' : ''}`}>
               <FossilSlotIcon />
             </div>
           ))}
@@ -116,6 +126,13 @@ export default function DigScreen({ state, dispatch }: DigScreenProps) {
         <div className="game-pos-label" aria-live="polite">
           <span>({state.cursor.x + 1}, {state.cursor.y + 1})</span>
         </div>
+
+        {/* DotPad hardware connector */}
+        <DotPadConnector
+          status={dotpadStatus}
+          onConnect={connect}
+          onDisconnect={disconnect}
+        />
 
         {/* Nav buttons */}
         <button

@@ -2102,3 +2102,69 @@ html, body {
   color: rgba(200,164,90,0.3);
   font-size: 0.65rem;
 }
+
+/* ======================================================
+   DOTPAD HARDWARE CONNECTOR
+   ====================================================== */
+.dotpad-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(10,7,2,0.6);
+  border: 1px solid rgba(200,164,90,0.15);
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+}
+
+.dotpad-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: rgba(200,164,90,0.6);
+}
+
+.dotpad-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(200,164,90,0.25);
+}
+
+.dotpad-status-pill.status-connected .dotpad-status-dot {
+  background: #4a9a9a;
+  box-shadow: 0 0 4px #4a9a9a;
+}
+.dotpad-status-pill.status-connected {
+  color: #4a9a9a;
+}
+.dotpad-status-pill.status-connecting .dotpad-status-dot {
+  background: #c8a45a;
+  animation: dotpad-blink 1s ease infinite;
+}
+.dotpad-status-pill.status-unsupported .dotpad-status-dot {
+  background: rgba(200,60,60,0.6);
+}
+
+@keyframes dotpad-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+.dotpad-connect-btn,
+.dotpad-disconnect-btn {
+  font-size: 0.6rem;
+  padding: 3px 6px;
+  height: auto;
+  min-height: 22px;
+}
+
+.dotpad-unsupported-hint {
+  font-size: 0.55rem;
+  color: rgba(200,90,90,0.7);
+  text-align: center;
+}

@@ -1,25 +1,16 @@
-import { useMemo, useEffect, useRef } from 'react';
-import type { DigCell } from '../types';
-import { renderToDotGrid } from '../dotpad/tactilePatterns';
+import { useEffect, useRef } from 'react';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 
-interface DotPadPreviewProps {
-  grid: DigCell[][];
-  cursor: { x: number; y: number; size: 1 | 2 | 5 };
-  stageWidth: number;
-  stageHeight: number;
-}
-
-// Intensity → color mapping for new dark theme
+// Intensity → color mapping
 const DOT_COLORS: Record<number, string> = {
-  0: '#1a1208', // background (very dark, barely visible)
-  1: '#3d2a15', // soil (dark brown muted)
-  2: '#6b4f2a', // hard soil / crack
-  3: '#b8a882', // fossil (lighter ivory)
-  4: '#4a9a9a', // cursor (teal)
+  0: '#1a1208',
+  1: '#3d2a15',
+  2: '#6b4f2a',
+  3: '#b8a882',
+  4: '#4a9a9a',
 };
 
-function DotPadMainCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?: number }) {
+function DotPadCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -36,7 +27,6 @@ function DotPadMainCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?
     canvas.width = cols * cellSize;
     canvas.height = rows * cellSize;
 
-    // Background: near black
     ctx.fillStyle = '#0a0806';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -54,11 +44,10 @@ function DotPadMainCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?
         ctx.fillStyle = color;
         ctx.fill();
 
-        // Subtle raised highlight for dots with intensity > 0
         if (val > 0) {
           const grad = ctx.createRadialGradient(
             cx - dotRadius * 0.3, cy - dotRadius * 0.3, 0,
-            cx, cy, dotRadius
+            cx, cy, dotRadius,
           );
           grad.addColorStop(0, 'rgba(255,255,255,0.18)');
           grad.addColorStop(1, 'rgba(0,0,0,0)');
@@ -81,15 +70,14 @@ function DotPadMainCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?
   );
 }
 
-export default function DotPadPreview({ grid, cursor, stageWidth, stageHeight }: DotPadPreviewProps) {
-  const dotGrid = useMemo(
-    () => renderToDotGrid(grid, cursor, stageWidth, stageHeight),
-    [grid, cursor, stageWidth, stageHeight],
-  );
+interface DotPadPreviewProps {
+  dotGrid: DotGrid;
+}
 
+export default function DotPadPreview({ dotGrid }: DotPadPreviewProps) {
   return (
     <div className="dotpad-main" aria-label="DotPad 촉각 미리보기">
-      <DotPadMainCanvas dotGrid={dotGrid} dotSize={6} />
+      <DotPadCanvas dotGrid={dotGrid} dotSize={6} />
     </div>
   );
 }
