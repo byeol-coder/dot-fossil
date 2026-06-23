@@ -6,7 +6,7 @@ import { TOOL_DEFS } from '../data/tools';
 import { renderToDotGrid } from '../dotpad/tactilePatterns';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 import type { DotPadStatus } from '../dotpad/useDotPad';
-import { getFossilPattern } from '../dotpad/fossilPatterns';
+import { getFossilPattern, getExcavationSoilPattern } from '../dotpad/fossilPatterns';
 import DotPadPreview from './DotPadPreview';
 import BrailleMessageBar from './BrailleMessageBar';
 import DotPadConnector from './DotPadConnector';
@@ -157,7 +157,7 @@ interface DigScreenProps {
   dotpadStatus: DotPadStatus;
   connect: () => void;
   disconnect: () => void;
-  sendGrid: (g: DotGrid) => void;
+  sendGrid: (g: DotGrid) => void; // kept for compatibility; hardware uses sendRawHex
   sendRawHex: (h: string) => void;
 }
 
@@ -175,7 +175,7 @@ function AmmoniteSVG() {
   );
 }
 
-export default function DigScreen({ state, dispatch, dotpadStatus, connect, disconnect, sendGrid, sendRawHex }: DigScreenProps) {
+export default function DigScreen({ state, dispatch, dotpadStatus, connect, disconnect, sendGrid: _sendGrid, sendRawHex }: DigScreenProps) {
   const stage = STAGES[state.stageId];
   const { completion, damage, foundPieces, totalPieces, currentTool, characterAction } = state;
 
@@ -183,16 +183,28 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
   const prevFoundPieces = useRef(state.foundPieces);
   const prevCompletion = useRef(state.completion);
 
+  // DotPad visual preview (screen display only, not sent to hardware)
   const dotGrid = useMemo(
     () => renderToDotGrid(state.grid, state.cursor, stage?.width ?? 20, stage?.height ?? 14),
     [state.grid, state.cursor, stage],
   );
 
-  useEffect(() => {
-    sendGrid(dotGrid);
-  }, [dotGrid, sendGrid]);
+  // Best reveal progress across all fossil pieces (0-100)
+  const bestRevealProgress = useMemo(() => {
+    if (state.fossilPieces.length === 0) return 0;
+    return Math.max(...state.fossilPieces.map(p => p.revealProgress));
+  }, [state.fossilPieces]);
 
-  // Fossil piece found popup — also send the fossil's tactile pattern to DotPad
+  // Soil stage index (0-8) — changes only at thresholds
+  const soilPageIdx = Math.min(8, Math.floor((bestRevealProgress / 100) * 9));
+
+  // Send DotPad soil-removal stage pattern when index changes or device connects
+  useEffect(() => {
+    sendRawHex(getExcavationSoilPattern(bestRevealProgress));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soilPageIdx, dotpadStatus, sendRawHex]);
+
+  // Fossil piece found popup — send the fossil's bone tactile pattern to DotPad
   useEffect(() => {
     if (state.foundPieces > prevFoundPieces.current && digView === 'playing') {
       setDigView('fossil-found');
