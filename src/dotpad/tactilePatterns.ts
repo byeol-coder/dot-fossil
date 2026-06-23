@@ -29,11 +29,11 @@ function crackPattern(dotX: number, dotY: number): number {
 function ribPattern(dotX: number, dotY: number, stage: RevealStage): number {
   const curve = Math.abs((dotX % 6) - (dotY % 6)) <= 1;
   switch (stage) {
-    case 'hint':    return curve ? 1 : 0;
-    case 'partial': return curve ? 2 : 0;
-    case 'clear':   return curve ? 3 : 1;
+    case 'hint':    return curve ? 2 : 1;
+    case 'partial': return curve ? 3 : 1;
+    case 'clear':   return curve ? 3 : 2;
     case 'almost':  return curve ? 4 : 2;
-    case 'found':   return curve ? 4 : (dotX % 3 === 0 ? 2 : 1);
+    case 'found':   return curve ? 4 : (dotX % 3 === 0 ? 3 : 2);
     default:        return soilPattern(dotX, dotY);
   }
 }
@@ -42,10 +42,10 @@ function toothPattern(dotX: number, dotY: number, stage: RevealStage): number {
   const tip = (dotX % 5 === 2 && dotY % 5 === 0);
   const edge = Math.abs((dotX % 5) - 2) + dotY % 5 <= 2;
   switch (stage) {
-    case 'hint':    return tip ? 1 : 0;
-    case 'partial': return tip ? 2 : (edge ? 1 : 0);
-    case 'clear':   return tip ? 3 : (edge ? 2 : 0);
-    case 'almost':  return tip ? 4 : (edge ? 3 : 1);
+    case 'hint':    return tip ? 2 : 1;
+    case 'partial': return tip ? 3 : (edge ? 2 : 1);
+    case 'clear':   return tip ? 3 : (edge ? 2 : 1);
+    case 'almost':  return tip ? 4 : (edge ? 3 : 2);
     case 'found':   return tip ? 4 : (edge ? 3 : 2);
     default:        return soilPattern(dotX, dotY);
   }
@@ -57,11 +57,11 @@ function skullPattern(dotX: number, dotY: number, stage: RevealStage): number {
   const eyeSocket = (Math.abs(cx - 2.5) < 1 && Math.abs(cy - 2) < 1) ||
                     (Math.abs(cx - 5.5) < 1 && Math.abs(cy - 2) < 1);
   switch (stage) {
-    case 'hint':    return outline ? 1 : 0;
-    case 'partial': return outline ? 2 : 0;
-    case 'clear':   return outline ? 3 : (eyeSocket ? 1 : 0);
-    case 'almost':  return outline ? 4 : (eyeSocket ? 2 : 1);
-    case 'found':   return outline ? 4 : (eyeSocket ? 3 : 1);
+    case 'hint':    return outline ? 2 : 1;
+    case 'partial': return outline ? 3 : 1;
+    case 'clear':   return outline ? 3 : (eyeSocket ? 2 : 1);
+    case 'almost':  return outline ? 4 : (eyeSocket ? 3 : 2);
+    case 'found':   return outline ? 4 : (eyeSocket ? 3 : 2);
     default:        return soilPattern(dotX, dotY);
   }
 }
@@ -70,9 +70,9 @@ function shellPattern(dotX: number, dotY: number, stage: RevealStage): number {
   const r = Math.sqrt((dotX % 8 - 4) ** 2 + (dotY % 8 - 4) ** 2);
   const spiral = Math.abs(r - (((dotX + dotY) % 6) + 1)) < 0.8;
   switch (stage) {
-    case 'hint':    return spiral ? 1 : 0;
-    case 'partial': return spiral ? 2 : 0;
-    case 'clear':   return spiral ? 3 : 1;
+    case 'hint':    return spiral ? 2 : 1;
+    case 'partial': return spiral ? 3 : 1;
+    case 'clear':   return spiral ? 3 : 2;
     case 'almost':  return spiral ? 4 : 2;
     case 'found':   return spiral ? 4 : 2;
     default:        return soilPattern(dotX, dotY);
@@ -82,9 +82,9 @@ function shellPattern(dotX: number, dotY: number, stage: RevealStage): number {
 function clawPattern(dotX: number, dotY: number, stage: RevealStage): number {
   const hook = Math.abs((dotX % 6) - (dotY % 4) * 0.8) < 0.9;
   switch (stage) {
-    case 'hint':    return hook ? 1 : 0;
-    case 'partial': return hook ? 2 : 0;
-    case 'clear':   return hook ? 3 : 1;
+    case 'hint':    return hook ? 2 : 1;
+    case 'partial': return hook ? 3 : 1;
+    case 'clear':   return hook ? 3 : 2;
     case 'almost':  return hook ? 4 : 2;
     case 'found':   return hook ? 4 : 2;
     default:        return soilPattern(dotX, dotY);
@@ -95,10 +95,10 @@ function vertebraPattern(dotX: number, dotY: number, stage: RevealStage): number
   const node = (dotX % 4 === 2) && (dotY % 3 === 1);
   const link = (dotX % 4 === 2) || (dotY % 3 === 1 && dotX % 4 < 3);
   switch (stage) {
-    case 'hint':    return node ? 1 : 0;
-    case 'partial': return node ? 2 : (link ? 1 : 0);
-    case 'clear':   return node ? 3 : (link ? 2 : 0);
-    case 'almost':  return node ? 4 : (link ? 3 : 1);
+    case 'hint':    return node ? 2 : 1;
+    case 'partial': return node ? 3 : (link ? 2 : 1);
+    case 'clear':   return node ? 3 : (link ? 2 : 1);
+    case 'almost':  return node ? 4 : (link ? 3 : 2);
     case 'found':   return node ? 4 : (link ? 3 : 2);
     default:        return soilPattern(dotX, dotY);
   }
@@ -107,9 +107,9 @@ function vertebraPattern(dotX: number, dotY: number, stage: RevealStage): number
 function genericFossilPattern(dotX: number, dotY: number, stage: RevealStage): number {
   const outline = ((dotX + dotY) % 4 === 0);
   switch (stage) {
-    case 'hint':    return outline ? 1 : 0;
-    case 'partial': return outline ? 2 : 0;
-    case 'clear':   return outline ? 3 : 1;
+    case 'hint':    return outline ? 2 : 1;
+    case 'partial': return outline ? 3 : 1;
+    case 'clear':   return outline ? 3 : 2;
     case 'almost':  return outline ? 4 : 2;
     case 'found':   return outline ? 4 : 2;
     default:        return soilPattern(dotX, dotY);
@@ -153,39 +153,37 @@ export function renderToDotGrid(
 
       const cell = grid[cellY][cellX];
 
-      // Fully revealed fossil
-      if (cell.revealed && cell.type === 'fossil') {
-        dots[dotY][dotX] = tactileForStage(dotX, dotY, 'found', 'rib');
-        continue;
-      }
-      if (cell.revealed) {
-        dots[dotY][dotX] = 0;
-        continue;
-      }
-
-      // Fossil cell — stage-aware tactile
+      // Fossil cell — stage-aware tactile (including fully revealed)
       if (cell.type === 'fossil') {
-        const progress = cell.fossilRevealProgress ?? 0;
-        // Need visualType — derive from fossilId since DigCell doesn't store it
         const visualType: FossilVisualType =
-          cell.fossilId === 'tooth' ? 'tooth' :
-          cell.fossilId === 'skull' ? 'skull' :
-          cell.fossilId === 'shell' ? 'shell' :
-          cell.fossilId === 'claw'  ? 'claw'  :
+          cell.fossilId === 'tooth'    ? 'tooth'    :
+          cell.fossilId === 'skull'    ? 'skull'    :
+          cell.fossilId === 'shell'    ? 'shell'    :
+          cell.fossilId === 'claw'     ? 'claw'     :
           cell.fossilId === 'vertebra' ? 'vertebra' :
           'rib';
 
-        const stage =
-          progress >= 75 ? 'almost' :
-          progress >= 50 ? 'clear'  :
-          progress >= 25 ? 'partial' :
-          progress > 0   ? 'hint'   : 'hidden';
-
-        if (stage === 'hidden') {
-          dots[dotY][dotX] = soilPattern(dotX, dotY);
-        } else {
-          dots[dotY][dotX] = tactileForStage(dotX, dotY, stage, visualType);
+        if (cell.revealed) {
+          dots[dotY][dotX] = tactileForStage(dotX, dotY, 'found', visualType);
+          continue;
         }
+
+        const progress = cell.fossilRevealProgress ?? 0;
+        const stage: RevealStage =
+          progress >= 75 ? 'almost'  :
+          progress >= 50 ? 'clear'   :
+          progress >= 25 ? 'partial' :
+          progress > 0   ? 'hint'    : 'hidden';
+
+        dots[dotY][dotX] = stage === 'hidden'
+          ? soilPattern(dotX, dotY)
+          : tactileForStage(dotX, dotY, stage, visualType);
+        continue;
+      }
+
+      // Non-fossil revealed cell
+      if (cell.revealed) {
+        dots[dotY][dotX] = 0;
         continue;
       }
 

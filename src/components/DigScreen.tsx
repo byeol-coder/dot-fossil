@@ -6,7 +6,7 @@ import { TOOL_DEFS } from '../data/tools';
 import { renderToDotGrid } from '../dotpad/tactilePatterns';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 import type { DotPadStatus } from '../dotpad/useDotPad';
-import { getFossilPattern, getExcavationSoilPattern } from '../dotpad/fossilPatterns';
+import { getFossilPattern, getExcavationSoilPattern, hexPatternToDotGrid } from '../dotpad/fossilPatterns';
 import DotPadPreview from './DotPadPreview';
 import BrailleMessageBar from './BrailleMessageBar';
 import DotPadConnector from './DotPadConnector';
@@ -193,6 +193,17 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
     [state.grid, state.cursor, stage],
   );
 
+  // When a fossil piece is found, show its actual bone pattern instead of the game grid
+  const fossilFoundGrid = useMemo<DotGrid | null>(() => {
+    if (digView !== 'fossil-found') return null;
+    const fossilId = stage?.fossils[0]?.fossilId;
+    if (!fossilId) return null;
+    const hex = getFossilPattern(fossilId);
+    return hex ? hexPatternToDotGrid(hex) : null;
+  }, [digView, stage]);
+
+  const displayGrid = fossilFoundGrid ?? dotGrid;
+
   // Best reveal progress across all fossil pieces (0-100)
   const bestRevealProgress = useMemo(() => {
     if (state.fossilPieces.length === 0) return 0;
@@ -265,7 +276,7 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         aria-label="발굴 지도"
       >
         <div className="gw-dig-board-inner" style={{ position: 'relative' }}>
-          <DotPadPreview dotGrid={dotGrid} />
+          <DotPadPreview dotGrid={displayGrid} />
           <FossilRevealLayer
             fossilPieces={state.fossilPieces}
             stageWidth={stage?.width ?? 20}

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 
-// Intensity → color mapping
+// Intensity → color mapping (0=deep dark soil, 4=near-white raised dot)
 const DOT_COLORS: Record<number, string> = {
-  0: '#1a1208',
-  1: '#3d2a15',
-  2: '#6b4f2a',
-  3: '#b8a882',
-  4: '#4a9a9a',
+  0: '#0d0a06',
+  1: '#2b1c0c',
+  2: '#7a5830',
+  3: '#d4aa50',
+  4: '#f0e8b4',
 };
 
 function DotPadCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?: number }) {

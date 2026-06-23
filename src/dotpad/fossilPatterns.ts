@@ -51,3 +51,25 @@ export const FOSSIL_TACTILE_PATTERNS = P;
 export function getFossilPattern(fossilId: string): string | null {
   return FOSSIL_TACTILE_PATTERNS[fossilId] ?? null;
 }
+
+// Parse a 600-char hex DotPad pattern into a 40×60 dot intensity grid (0 or 4).
+// Braille cell layout: 10 rows × 30 cols, each cell = 4×2 pins (left col bits 0-3, right col bits 4-7).
+export function hexPatternToDotGrid(hex: string): number[][] {
+  const DOT_ROWS = 40, DOT_COLS = 60;
+  const dots: number[][] = Array.from({ length: DOT_ROWS }, () => new Array(DOT_COLS).fill(0));
+  const byteCount = hex.length >> 1;
+  for (let i = 0; i < byteCount; i++) {
+    const byte = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+    if (!byte) continue;
+    const bRow = Math.floor(i / 30);
+    const bCol = i % 30;
+    for (let pin = 0; pin < 8; pin++) {
+      if ((byte >> pin) & 1) {
+        const dotRow = bRow * 4 + (pin & 3);
+        const dotCol = bCol * 2 + (pin >> 2);
+        if (dotRow < DOT_ROWS && dotCol < DOT_COLS) dots[dotRow][dotCol] = 4;
+      }
+    }
+  }
+  return dots;
+}
