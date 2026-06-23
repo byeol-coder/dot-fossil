@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction } from '../types';
 import { useTranslation } from '../i18n';
@@ -7,6 +7,55 @@ import { ASSETS } from '../assets';
 interface TitleScreenProps {
   dispatch: Dispatch<GameAction>;
 }
+
+// ─── Image-sync positioning ──────────────────────────────────────────────────
+// Source image native size
+const IMG_W = 1672;
+const IMG_H = 941;
+
+// Bounding-box center points (cx, cy) and sizes (w, h) in source-image pixels.
+// Adjust these when the source image changes to re-sync overlays.
+// Measured from 1672×941 Dot fossil_intro.png via canvas pixel analysis.
+const IMG = {
+  subtitle: { cx: 510, cy: 322, w: 800, h: 150 }, // dark sign band — y≈248–396
+  tagline:  { cx: 510, cy: 520, w: 800, h: 162 }, // parchment scroll — y≈440–600
+  buttons:  { cy: 872 },                            // baked-in pill buttons — y≈848–897
+  lang:     { cx: 1490, cy: 913 },                 // 한국어 toggle — y≈890–935
+} as const;
+
+interface ImgTransform { scale: number; ox: number; oy: number; }
+
+function computeTransform(): ImgTransform {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const scale = Math.max(vw / IMG_W, vh / IMG_H);
+  return { scale, ox: (IMG_W * scale - vw) / 2, oy: (IMG_H * scale - vh) / 2 };
+}
+
+// Recomputes whenever the viewport resizes
+function useImgTransform(): ImgTransform {
+  const [tf, setTf] = useState(computeTransform);
+  useEffect(() => {
+    const upd = () => setTf(computeTransform());
+    window.addEventListener('resize', upd);
+    return () => window.removeEventListener('resize', upd);
+  }, []);
+  return tf;
+}
+
+// Returns absolute position style centred on the given image-space point
+function centredStyle(
+  cx: number, cy: number, tf: ImgTransform,
+  extra?: CSSProperties
+): CSSProperties {
+  return {
+    position: 'absolute',
+    left: cx * tf.scale - tf.ox,
+    top:  cy * tf.scale - tf.oy,
+    transform: 'translate(-50%, -50%)',
+    ...extra,
+  };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const ShovelIcon = () => (
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
@@ -54,6 +103,7 @@ const GlobeIcon = () => (
 export default function TitleScreen({ dispatch }: TitleScreenProps) {
   const { t, lang, setLang } = useTranslation();
   const [activeBtn, setActiveBtn] = useState(0);
+  const tf = useImgTransform();
 
   const BUTTONS = [
     {
@@ -90,6 +140,23 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBtn, lang]);
 
+  // Derived pixel positions — recalculated on every resize via tf
+  const subStyle = centredStyle(IMG.subtitle.cx, IMG.subtitle.cy, tf, {
+    width:     IMG.subtitle.w * tf.scale,
+    minHeight: IMG.subtitle.h * tf.scale,
+  });
+  const tagStyle = centredStyle(IMG.tagline.cx, IMG.tagline.cy, tf, {
+    width:     IMG.tagline.w * tf.scale,
+    minHeight: IMG.tagline.h * tf.scale,
+  });
+  const navStyle: CSSProperties = {
+    position:  'absolute',
+    left:      '50%',
+    top:       IMG.buttons.cy * tf.scale - tf.oy,
+    transform: 'translate(-50%, -50%)',
+  };
+  const langStyle = centredStyle(IMG.lang.cx, IMG.lang.cy, tf);
+
   return (
     <div
       className="title-new"
@@ -98,19 +165,19 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
       style={{ backgroundImage: `url('${ASSETS.screens.title}')` }}
     >
       {/* ── Subtitle overlay — covers baked-in "촉각 발굴단" on sign ── */}
-      <div className="title-subtitle-wrap" aria-hidden="true">
+      <div className="title-subtitle-wrap" aria-hidden="true" style={subStyle}>
         <span className="title-subtitle-dash">—</span>
         <span className="title-subtitle-text">{t('intro.subtitle')}</span>
         <span className="title-subtitle-dash">—</span>
       </div>
 
-      {/* ── Tagline overlay — covers baked-in scroll text ── */}
-      <p className="title-tagline-wrap">
+      {/* ── Tagline overlay — covers baked-in parchment scroll text ── */}
+      <p className="title-tagline-wrap" style={tagStyle}>
         {t('intro.tagline')}
       </p>
 
       {/* ── Three pill buttons ── */}
-      <nav className="title-pill-nav" aria-label="메인 메뉴">
+      <nav className="title-pill-nav" aria-label="메인 메뉴" style={navStyle}>
         {BUTTONS.map((btn, i) => (
           <button
             key={btn.key}
@@ -126,11 +193,12 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
         ))}
       </nav>
 
-      {/* ── Language toggle — bottom right ── */}
+      {/* ── Language toggle ── */}
       <button
         className="title-lang-btn"
         onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')}
         aria-label="언어 전환 / Switch language"
+        style={langStyle}
       >
         <GlobeIcon />
         <span>{t(`lang.${lang}`)}</span>

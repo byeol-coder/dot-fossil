@@ -517,19 +517,14 @@ html, body {
   background-repeat: no-repeat;
 }
 
-/* Subtitle overlay — covers baked-in "촉각 발굴단" on wooden sign */
+/* Subtitle overlay — covers baked-in "촉각 발굴단" on wooden sign.
+   Position/size set via inline style (see TitleScreen.tsx IMG constants). */
 .title-subtitle-wrap {
   position: absolute;
-  /* dark band beneath "Dot Fossil" logo: ~33-42% of viewport */
-  top: 33%;
-  left: 6%;
-  width: 52%;
-  min-height: 9%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  /* opaque background matching the dark sign band */
   background: #100c06;
   padding: 6px 0 8px;
   pointer-events: none;
@@ -550,16 +545,12 @@ html, body {
   text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
-/* Tagline overlay — covers baked-in parchment scroll text (~45-59% of viewport) */
+/* Tagline overlay — covers baked-in parchment scroll text.
+   Position/size set via inline style (see TitleScreen.tsx IMG constants). */
 .title-tagline-wrap {
   position: absolute;
-  top: 45%;
-  left: 6%;
-  width: 52%;
-  min-height: 14%;
   margin: 0;
   text-align: center;
-  /* opaque parchment-like background matching scroll area */
   background: #c8a860;
   padding: 8px 16px 10px;
   color: #2a1a08;
@@ -573,13 +564,9 @@ html, body {
   pointer-events: none;
 }
 
-/* ── Three pill buttons at bottom ── */
+/* ── Three pill buttons — position set via inline style ── */
 .title-pill-nav {
   position: absolute;
-  /* bottom: 8% → nav bottom at ~92% of viewport, covers baked-in buttons (79-91%) */
-  bottom: 8%;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   gap: clamp(10px, 2vw, 22px);
   align-items: center;
@@ -655,16 +642,13 @@ html, body {
   color: #e8c87a;
 }
 
-/* ── Language toggle button — bottom right ── */
+/* ── Language toggle button — position set via inline style ── */
 .title-lang-btn {
   position: absolute;
-  /* bottom: 8% → aligns with the baked-in 한국어 button (≈87-91% of viewport) */
-  bottom: 8%;
-  right: 4%;
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(28, 18, 6, 0.82);
+  background: #1c1206;
   border: 1.5px solid #7a5820;
   border-radius: 100px;
   padding: 6px 14px 6px 10px;
@@ -674,12 +658,13 @@ html, body {
   font-weight: 700;
   color: #c8a45a;
   letter-spacing: 0.1em;
+  white-space: nowrap;
   transition: border-color 0.18s, background 0.18s;
 }
 
 .title-lang-btn:hover {
   border-color: #c8a45a;
-  background: rgba(48, 30, 10, 0.9);
+  background: #301e0a;
 }
 
 /* ── Version label — bottom left ── */
