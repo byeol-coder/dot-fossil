@@ -1,58 +1,24 @@
 import type { Dispatch } from 'react';
 import type { GameAction, ToolType, CharacterAction } from '../types';
 import { TOOL_DEFS } from '../data/tools';
+import { ASSETS, CHARACTER_ACTION_ASSET, TOOL_ASSET } from '../assets';
+import GameAssetImage from './GameAssetImage';
 
 const TOOL_LIST: ToolType[] = ['brush', 'careful_dig', 'probe'];
 
-// SVG icons matching the reference gameplay image
-function BrushToolIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <rect x="13" y="1" width="3" height="15" rx="1.5" fill="#c8a45a"/>
-      <rect x="11" y="13" width="7" height="3.5" rx="1.2" fill="#e8c87a"/>
-      <path d="M12 16.5 Q14 25 14 28" stroke="#c8a45a" strokeWidth="2" fill="none" strokeLinecap="round"/>
-      <path d="M14 16.5 Q15.5 24 16 28" stroke="#b8943a" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-      <path d="M16 16.5 Q17 24 16.5 28" stroke="#b8943a" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function TrowelToolIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <path d="M6 22 L18 8" stroke="#c8a45a" strokeWidth="2.5" strokeLinecap="round"/>
-      <path d="M18 8 L22 4 C23 3 25 3 25 5 C25 7 23 7 22 8 L18 8 Z" fill="#c8a45a"/>
-      <path d="M6 22 L4 26 C3.5 27 4.5 28 5.5 27.5 L8 25 Z" fill="#8b6020"/>
-      <rect x="4" y="23" width="5" height="3" rx="1" transform="rotate(-45 4 23)" fill="#6b4520"/>
-    </svg>
-  );
-}
-
-function PickaxeToolIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <path d="M8 20 L20 8" stroke="#c8a45a" strokeWidth="2.5" strokeLinecap="round"/>
-      <path d="M20 8 C20 8 24 3 26 4 C28 5 23 9 20 8 Z" fill="#c8a45a"/>
-      <path d="M20 8 C22 6 25 5 26 4" stroke="#e8c87a" strokeWidth="1" fill="none"/>
-      <path d="M8 20 L5 23 C4 24 3 27 5 27 C7 27 8 25 9 24 Z" fill="#8b6020"/>
-      <rect x="6" y="21" width="5" height="3" rx="1" transform="rotate(-45 6 21)" fill="#6b4520"/>
-    </svg>
-  );
-}
-
-const TOOL_ICONS: Record<ToolType, () => JSX.Element> = {
-  brush: BrushToolIcon,
-  careful_dig: TrowelToolIcon,
-  probe: PickaxeToolIcon,
-};
+const LOCKED_TOOLS = [
+  { key: 'hammer',  icon: ASSETS.tools.hammer,         label: '망치' },
+  { key: 'pickaxe', icon: ASSETS.tools.pickaxe,        label: '곡괭이' },
+  { key: 'kit',     icon: ASSETS.tools.restorationKit, label: '복원킷' },
+];
 
 const ACTION_LABELS: Record<CharacterAction, string> = {
-  idle: '대기',
-  move: '이동 중',
-  brush: '브러싱',
-  dig: '발굴 중',
-  probe: '탐지 중',
-  found: '발견!',
+  idle:    '대기',
+  move:    '이동',
+  brush:   '브러싱',
+  dig:     '발굴 중',
+  probe:   '탐지 중',
+  found:   '발견!',
   warning: '주의!',
 };
 
@@ -65,46 +31,79 @@ interface ToolPanelProps {
 export default function ToolPanel({ currentTool, characterAction, dispatch }: ToolPanelProps) {
   return (
     <aside className="tool-panel-overlay" aria-label="도구 패널">
-      {TOOL_LIST.map(toolId => {
-        const tool = TOOL_DEFS[toolId];
-        const isActive = currentTool === toolId;
-        const Icon = TOOL_ICONS[toolId];
-        return (
-          <button
-            key={toolId}
-            className={`tool-slot-overlay${isActive ? ' active' : ''}`}
-            onClick={() => dispatch({ type: 'SET_TOOL', tool: toolId })}
-            aria-pressed={isActive}
-            aria-label={`${tool.name} (${tool.shortcut}키)`}
-            title={`${tool.name} — ${tool.description}`}
-          >
-            <span className="tool-slot-overlay-icon"><Icon /></span>
-            <div className="tool-slot-overlay-info">
-              <span className="tool-slot-overlay-key">{tool.shortcut}</span>
-              <span className="tool-slot-overlay-name">{tool.name}</span>
-            </div>
-          </button>
-        );
-      })}
-
-      {/* Locked slot */}
-      <div className="tool-slot-overlay locked" aria-hidden="true">
-        <span className="tool-slot-overlay-icon" style={{ opacity: 0.3 }}>
-          <PickaxeToolIcon />
+      {/* Character avatar — state-driven image */}
+      <div className="char-avatar-slot" aria-live="polite" aria-label={`탐험가 상태: ${ACTION_LABELS[characterAction]}`}>
+        <GameAssetImage
+          src={CHARACTER_ACTION_ASSET[characterAction]}
+          alt={`탐험가 ${ACTION_LABELS[characterAction]}`}
+          className="char-avatar-img"
+          width={88}
+          height={88}
+        />
+        <span className={`char-avatar-label action-${characterAction}`}>
+          {ACTION_LABELS[characterAction]}
         </span>
-        <div className="tool-slot-overlay-info">
-          <span className="tool-slot-overlay-name" style={{ fontSize: '0.6rem' }}>잠금</span>
-        </div>
       </div>
 
-      {/* Action status */}
-      <div
-        className="tool-action-status"
-        aria-live="polite"
-        aria-label={`현재 상태: ${ACTION_LABELS[characterAction]}`}
-      >
-        <div className={`tool-action-dot action-${characterAction}`} />
-        <span>{ACTION_LABELS[characterAction]}</span>
+      {/* Active tools */}
+      <div className="tool-divider" aria-hidden="true" />
+      <div className="tool-slots-group" role="group" aria-label="사용 가능한 도구">
+        {TOOL_LIST.map((toolId) => {
+          const tool = TOOL_DEFS[toolId];
+          const isActive = currentTool === toolId;
+          return (
+            <button
+              key={toolId}
+              className={`tool-slot-overlay${isActive ? ' active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_TOOL', tool: toolId })}
+              aria-pressed={isActive}
+              aria-label={`${tool.name} — ${tool.shortcut}키`}
+              title={tool.description}
+            >
+              <span className="tool-slot-img-wrap">
+                <GameAssetImage
+                  src={TOOL_ASSET[toolId]}
+                  alt={tool.name}
+                  width={44}
+                  height={44}
+                  style={{ objectFit: 'contain' }}
+                />
+              </span>
+              <span className="tool-slot-meta">
+                <span className="tool-slot-key">{tool.shortcut}</span>
+                <span className="tool-slot-name">{tool.name}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Locked tools */}
+      <div className="tool-divider" aria-hidden="true" />
+      <div className="tool-slots-group locked" aria-label="잠긴 도구">
+        {LOCKED_TOOLS.map(lt => (
+          <div key={lt.key} className="tool-slot-overlay locked" aria-label={`${lt.label} — 잠금`}>
+            <span className="tool-slot-img-wrap">
+              <GameAssetImage
+                src={lt.icon}
+                alt={lt.label}
+                width={36}
+                height={36}
+                style={{ objectFit: 'contain', opacity: 0.35 }}
+              />
+            </span>
+            <span className="tool-slot-meta">
+              <span className="tool-slot-name" style={{ opacity: 0.4 }}>{lt.label}</span>
+              <GameAssetImage
+                src={ASSETS.ui.badgeLock}
+                alt="잠금"
+                width={14}
+                height={14}
+                style={{ objectFit: 'contain' }}
+              />
+            </span>
+          </div>
+        ))}
       </div>
     </aside>
   );

@@ -1,3 +1,4 @@
+import { ASSETS } from '../assets';
 import { formatBraille } from '../dotpad/brailleRenderer';
 
 interface BrailleMessageBarProps {
@@ -7,10 +8,22 @@ interface BrailleMessageBarProps {
 
 export default function BrailleMessageBar({ message, label }: BrailleMessageBarProps) {
   const formatted = formatBraille(message);
+
   return (
-    <div className="braille-bar" role="status" aria-live="polite" aria-label="점자 메시지 표시줄">
-      <span className="braille-label" aria-hidden="true">점자 메시지 — {label}</span>
-      <span className="braille-message" aria-label={message}>{formatted}</span>
+    <div className="braille-panel" role="status" aria-live="polite" aria-label="20셀 점자 메시지">
+      {/* Device image as decorative background frame */}
+      <img
+        src={ASSETS.ui.brailleBar}
+        alt=""
+        aria-hidden="true"
+        className="braille-panel-device-img"
+        draggable={false}
+      />
+      {/* Live content overlay */}
+      <div className="braille-panel-content">
+        <span className="braille-panel-label">{label}</span>
+        <span className="braille-panel-text" aria-label={message}>{formatted}</span>
+      </div>
     </div>
   );
 }
