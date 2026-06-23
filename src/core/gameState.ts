@@ -98,7 +98,7 @@ export function createInitialState(stageId: string): GameState {
     completion: 0,
     damage:     0,
     foundPieces: 0,
-    totalPieces: stage.totalPieces,
+    totalPieces: fossilPieces.length,
     grid,
     clues,
     fossilPieces,
@@ -132,6 +132,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         state.cursor.y + action.dy,
         width, height,
       );
+      const newState: GameState = {
+        ...state,
+        cursor: { ...state.cursor, ...newPos },
+        characterAction: 'move',
+      };
+      if (state.mode === 'clue_scan') {
+        const msg = getClueMessage(newState);
+        return { ...newState, brailleMessage: msg, brailleLabel: '단서 탐색', dialogueMessage: msg };
+      }
+      return newState;
+    }
+
+    case 'SET_CURSOR_POSITION': {
+      const newPos = clampCursor(action.x, action.y, width, height);
       const newState: GameState = {
         ...state,
         cursor: { ...state.cursor, ...newPos },
@@ -226,7 +240,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         completion: 0,
         damage:     0,
         foundPieces: 0,
-        totalPieces: newStage.totalPieces,
+        totalPieces: generated.fossilPieces.length,
         cursor:     { x: Math.floor(newStage.width / 2), y: Math.floor(newStage.height / 2), size: 1 },
         characterAction: 'idle',
         mode:       'clue_scan',
@@ -288,7 +302,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         completion: 0,
         damage:     0,
         foundPieces: 0,
-        totalPieces: rstStage.totalPieces,
+        totalPieces: rstGen.fossilPieces.length,
         cursor:     { x: Math.floor(rstStage.width / 2), y: Math.floor(rstStage.height / 2), size: 1 },
         characterAction: 'idle',
         mode:       'clue_scan',

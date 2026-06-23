@@ -128,6 +128,7 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'MOVE_CURSOR'; dx: number; dy: number }
+  | { type: 'SET_CURSOR_POSITION'; x: number; y: number }
   | { type: 'USE_TOOL' }
   | { type: 'SET_TOOL'; tool: ToolType }
   | { type: 'NEXT_CLUE' }

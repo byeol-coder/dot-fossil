@@ -2792,8 +2792,21 @@ html, body {
 .gw-dig-bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
 .gw-dig-bar-fill.completion { background: linear-gradient(90deg, #40944a, #60c860); }
 .gw-dig-bar-fill.damage { background: linear-gradient(90deg, #c03030, #e04848); }
+.gw-dig-bar-fill.damage.warn   { background: linear-gradient(90deg, #b05a08, #d07820); }
 .gw-dig-bar-fill.damage.danger { background: linear-gradient(90deg, #d82010, #ff3828); }
 .gw-dig-stat-val { font-size: 0.72rem; font-weight: 700; color: #3a2008; text-align: right; }
+.gw-dig-stat-val.warn { color: #c06010; }
+
+/* Mode toggle button in right card */
+.gw-dig-mode-toggle {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(90,50,20,0.1); border: 1px solid rgba(90,50,20,0.2);
+  border-radius: 6px; padding: 4px 8px; font-size: 0.68rem;
+  color: #5a3010; cursor: pointer; width: 100%; text-align: left;
+  transition: background 0.15s;
+}
+.gw-dig-mode-toggle:hover { background: rgba(90,50,20,0.2); }
+.gw-dig-mode-toggle > span:first-child { flex: 1; }
 
 .gw-dig-divider { height: 1px; background: rgba(90,50,20,0.2); margin: 2px 0; flex-shrink: 0; }
 

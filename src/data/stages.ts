@@ -10,7 +10,7 @@ export const STAGES: Record<string, Stage> = {
     width: 20,
     height: 14,
     fossils: [
-      { fossilId: 'rib', count: 1 },
+      { fossilId: 'rib', count: 3 },
       { fossilId: 'shell', count: 1 },
     ],
     totalPieces: 4,

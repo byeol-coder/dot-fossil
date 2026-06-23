@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 
 // Intensity → color mapping (0=deep dark soil, 4=near-white raised dot)
@@ -10,7 +10,20 @@ const DOT_COLORS: Record<number, string> = {
   4: '#f0e8b4',
 };
 
-function DotPadCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?: number }) {
+const DOT_COLS = 60;
+const DOT_ROWS = 40;
+
+function DotPadCanvas({
+  dotGrid, dotSize = 6,
+  stageWidth, stageHeight,
+  onCellClick,
+}: {
+  dotGrid: DotGrid;
+  dotSize?: number;
+  stageWidth?: number;
+  stageHeight?: number;
+  onCellClick?: (cellX: number, cellY: number) => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -60,24 +73,49 @@ function DotPadCanvas({ dotGrid, dotSize = 6 }: { dotGrid: DotGrid; dotSize?: nu
     }
   }, [dotGrid, dotSize]);
 
+  const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!onCellClick || !stageWidth || !stageHeight) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const dotX = ((e.clientX - rect.left) / rect.width) * DOT_COLS;
+    const dotY = ((e.clientY - rect.top) / rect.height) * DOT_ROWS;
+    const cellX = Math.max(0, Math.min(stageWidth - 1, Math.floor(dotX * stageWidth / DOT_COLS)));
+    const cellY = Math.max(0, Math.min(stageHeight - 1, Math.floor(dotY * stageHeight / DOT_ROWS)));
+    onCellClick(cellX, cellY);
+  }, [onCellClick, stageWidth, stageHeight]);
+
   return (
     <canvas
       ref={canvasRef}
-      aria-label="DotPad 촉각 디스플레이 (60×40)"
+      aria-label="DotPad 촉각 디스플레이 (60×40) — 클릭하여 커서 이동"
       role="img"
-      style={{ display: 'block', width: '100%', height: '100%', imageRendering: 'pixelated' }}
+      onClick={onCellClick ? handleClick : undefined}
+      style={{
+        display: 'block', width: '100%', height: '100%', imageRendering: 'pixelated',
+        cursor: onCellClick ? 'crosshair' : 'default',
+      }}
     />
   );
 }
 
 interface DotPadPreviewProps {
   dotGrid: DotGrid;
+  stageWidth?: number;
+  stageHeight?: number;
+  onCellClick?: (cellX: number, cellY: number) => void;
 }
 
-export default function DotPadPreview({ dotGrid }: DotPadPreviewProps) {
+export default function DotPadPreview({ dotGrid, stageWidth, stageHeight, onCellClick }: DotPadPreviewProps) {
   return (
     <div className="dotpad-main" aria-label="DotPad 촉각 미리보기">
-      <DotPadCanvas dotGrid={dotGrid} dotSize={6} />
+      <DotPadCanvas
+        dotGrid={dotGrid}
+        dotSize={6}
+        stageWidth={stageWidth}
+        stageHeight={stageHeight}
+        onCellClick={onCellClick}
+      />
     </div>
   );
 }

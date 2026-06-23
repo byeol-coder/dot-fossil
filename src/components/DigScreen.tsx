@@ -276,7 +276,12 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         aria-label="발굴 지도"
       >
         <div className="gw-dig-board-inner" style={{ position: 'relative' }}>
-          <DotPadPreview dotGrid={displayGrid} />
+          <DotPadPreview
+            dotGrid={displayGrid}
+            stageWidth={stage?.width ?? 20}
+            stageHeight={stage?.height ?? 14}
+            onCellClick={(x, y) => dispatch({ type: 'SET_CURSOR_POSITION', x, y })}
+          />
           <FossilRevealLayer
             fossilPieces={state.fossilPieces}
             stageWidth={stage?.width ?? 20}
@@ -311,7 +316,7 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
             <div className="gw-dig-stat-label">{t('gameplay.damageLabel')}</div>
             <div className="gw-dig-stat-bar">
               <div
-                className={`gw-dig-bar-fill damage${damage > 60 ? ' danger' : ''}`}
+                className={`gw-dig-bar-fill damage${damage > 60 ? ' danger' : damage > 40 ? ' warn' : ''}`}
                 style={{ width: `${damage}%` }}
                 role="progressbar"
                 aria-valuenow={damage}
@@ -320,8 +325,10 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
                 aria-label={`${t('gameplay.damageLabel')} ${damage}%`}
               />
             </div>
-            <div className={`gw-dig-stat-val${damage > 60 ? ' danger' : ''}`}
-                 style={damage > 60 ? { color: '#c03030' } : undefined}>
+            <div
+              className={`gw-dig-stat-val${damage > 60 ? ' danger' : damage > 40 ? ' warn' : ''}`}
+              style={damage > 60 ? { color: '#c03030' } : damage > 40 ? { color: '#c06010' } : undefined}
+            >
               {damage}%
             </div>
           </div>
@@ -338,8 +345,16 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
 
           {/* Mode & cursor position */}
           <div className="gw-dig-stat" aria-live="polite" style={{ color: '#6a4420', fontSize: '0.7rem' }}>
-            {t('gameplay.posLabel')}: ({state.cursor.x + 1}, {state.cursor.y + 1}) — {state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}
+            {t('gameplay.posLabel')}: ({state.cursor.x + 1}, {state.cursor.y + 1})
           </div>
+          <button
+            className="gw-dig-mode-toggle"
+            onClick={() => dispatch({ type: 'SET_MODE', mode: state.mode === 'clue_scan' ? 'precision_dig' : 'clue_scan' })}
+            aria-label={`현재 모드: ${state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}. 클릭하여 전환`}
+          >
+            <span>{state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}</span>
+            <span className="gw-dig-key">F1/F2</span>
+          </button>
 
           <div className="gw-dig-divider" aria-hidden="true" />
 
@@ -421,9 +436,10 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
           className="gw-oval-btn"
           onClick={() => dispatch({ type: 'USE_TOOL' })}
           aria-label={`${t('gameplay.useTool')} ${t('gameplay.useToolKey')}`}
-          style={{ padding: '12px 36px', fontSize: '1rem' }}
+          style={{ padding: '12px 36px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}
         >
           {t('gameplay.useTool')}
+          <span className="gw-dig-key" style={{ opacity: 0.75, fontSize: '0.65rem' }}>Space</span>
         </button>
       </div>
 
