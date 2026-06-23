@@ -2869,16 +2869,23 @@ html, body {
    TUTORIAL WORLD (Image 3) — layout overrides
    ====================================================== */
 .tutorial-screen .tutorial-character-wrap {
-  bottom: 4%;
-  height: 71%;
-  width: 24%;
-  left: 0.5%;
+  display: none; /* baked into background image */
 }
 .tutorial-screen .tutorial-bubble {
-  left: 23%;
-  top: 9%;
-  width: 69%;
-  height: 57%;
+  left: 26%;
+  top: 21%;
+  width: 67%;
+  height: auto;
+  max-height: 45%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  align-items: flex-start;
+  padding: 18px 28px;
+}
+.tutorial-screen .tutorial-bubble::before,
+.tutorial-screen .tutorial-bubble::after {
+  display: none;
 }
 .tutorial-screen .tutorial-name-plate {
   bottom: 7%;
@@ -2974,6 +2981,12 @@ html, body {
 /* ======================================================
    STAGE ENTER SCREEN (se-)
    ====================================================== */
+/* Hide CSS character overlay on screens where background already has a character */
+.se-screen .gw-char-corner,
+.fs-screen .gw-char-corner {
+  display: none;
+}
+
 .se-screen {}
 
 .se-title-card {
@@ -3062,11 +3075,13 @@ html, body {
 
 .se-cta {
   position: absolute;
-  bottom: 7%;
-  left: 50%;
-  transform: translateX(-50%);
   z-index: 10;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* position driven by inline style from useImgTransform */
 }
 .se-hint {
   font-size: 0.72rem;
