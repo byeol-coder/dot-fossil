@@ -9,12 +9,12 @@ import { useTranslation } from '../i18n';
 const SE_IMG_W = 1672;
 const SE_IMG_H = 941;
 
-// Baked-in element centers in source-image pixels
+// Baked-in element centers in source-image pixels (measured from 1672×941 bg)
 const SE_IMG = {
-  titleCard: { cx: 800, cy: 200 },  // large sign board center
-  targetCard: { cx: 1450, cy: 400 }, // right card area center
-  btn:        { cx: 1045, cy: 855 }, // green "start" button center
-  bubble:     { cx: 220,  cy: 790 }, // speech bubble center
+  titleCard: { cx: 763, cy: 381 },  // main parchment board centre
+  targetCard: { cx: 1368, cy: 441 }, // right card panel centre
+  btn:        { cx: 1076, cy: 723 }, // green "start" button centre
+  bubble:     { cx: 143,  cy: 773 }, // character speech bubble centre
 } as const;
 
 function seComputeTransform() {

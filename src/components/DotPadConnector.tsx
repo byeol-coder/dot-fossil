@@ -3,7 +3,9 @@ import type { DotPadStatus } from '../dotpad/useDotPad';
 interface DotPadConnectorProps {
   status: DotPadStatus;
   onConnect: () => void;
+  onConnectDemo?: () => void;
   onDisconnect: () => void;
+  onSelfTest?: () => void;
 }
 
 const STATUS_LABEL: Record<DotPadStatus, string> = {
@@ -13,7 +15,7 @@ const STATUS_LABEL: Record<DotPadStatus, string> = {
   unsupported:  '미지원',
 };
 
-export default function DotPadConnector({ status, onConnect, onDisconnect }: DotPadConnectorProps) {
+export default function DotPadConnector({ status, onConnect, onConnectDemo, onDisconnect, onSelfTest }: DotPadConnectorProps) {
   const isConnected = status === 'connected';
   const isBusy = status === 'connecting';
   const isUnsupported = status === 'unsupported';
@@ -33,6 +35,24 @@ export default function DotPadConnector({ status, onConnect, onDisconnect }: Dot
           aria-label="DotPad 블루투스 연결"
         >
           {isBusy ? '연결 중…' : '연결'}
+        </button>
+      )}
+      {!isConnected && onConnectDemo && (
+        <button
+          className="game-btn game-btn-sm dotpad-demo-btn"
+          onClick={onConnectDemo}
+          aria-label="DotPad 데모 모드로 연결 (하드웨어 없이 시뮬레이션)"
+        >
+          데모
+        </button>
+      )}
+      {isConnected && onSelfTest && (
+        <button
+          className="game-btn game-btn-sm dotpad-selftest-btn"
+          onClick={onSelfTest}
+          aria-label="DotPad 기기 점검 — 방향 확인용 패턴 순차 출력"
+        >
+          점검
         </button>
       )}
       {isConnected && (

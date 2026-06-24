@@ -1,23 +1,11 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction } from '../types';
 import { STAGES } from '../data/stages';
 import { ASSETS } from '../assets';
+import { FOSSIL_IMG } from '../data/fossilImages';
 import GameAssetImage from './GameAssetImage';
 import { useTranslation } from '../i18n';
-
-const FOSSIL_IMG: Record<string, string> = {
-  rib:     ASSETS.fossils.rib,
-  shell:   ASSETS.fossils.ammonite,
-  skull:   ASSETS.fossils.skull,
-  leaf:    ASSETS.fossils.leaf,
-  vertebra: ASSETS.fossils.vertebra,
-  claw:    ASSETS.fossils.claw,
-  tooth:   ASSETS.fossils.tooth,
-  fish:    ASSETS.fossils.fish,
-  footprint: ASSETS.fossils.footprint,
-  ammonite: ASSETS.fossils.ammonite,
-};
 
 interface FossilSelectScreenProps {
   dispatch: Dispatch<GameAction>;
@@ -26,22 +14,31 @@ interface FossilSelectScreenProps {
 export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps) {
   const { t } = useTranslation();
   const stages = Object.values(STAGES);
+  const [activeIdx, setActiveIdx] = useState(0);
 
   const selectStage = useCallback((stageId: string) => {
     dispatch({ type: 'SELECT_STAGE', stageId });
   }, [dispatch]);
 
+  // Keyboard + DotPad panning: ←/→ move the highlighted dig site, Enter/Space選택.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        selectStage(stages[0]?.id ?? 'desert_rib');
+        setActiveIdx(i => Math.min(stages.length - 1, i + 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIdx(i => Math.max(0, i - 1));
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectStage(stages[activeIdx]?.id ?? stages[0]?.id ?? 'desert_rib');
+      } else if (e.key === 'Escape') {
+        dispatch({ type: 'SET_SCREEN', screen: 'title' });
       }
-      if (e.key === 'Escape') dispatch({ type: 'SET_SCREEN', screen: 'title' });
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectStage, dispatch, stages]);
+  }, [selectStage, dispatch, stages, activeIdx]);
 
   return (
     <div
@@ -87,17 +84,19 @@ export default function FossilSelectScreen({ dispatch }: FossilSelectScreenProps
 
       {/* Stage cards */}
       <div className="fs-cards" role="list" aria-label="발굴지 목록">
-        {stages.map(stage => {
+        {stages.map((stage, i) => {
           const firstFossilImg = stage.fossils[0]
             ? FOSSIL_IMG[stage.fossils[0].fossilId] ?? ''
             : '';
           return (
             <div
               key={stage.id}
-              className="fs-card"
+              className={`fs-card${i === activeIdx ? ' active' : ''}`}
               role="listitem"
-              onClick={() => selectStage(stage.id)}
+              onClick={() => { setActiveIdx(i); selectStage(stage.id); }}
+              onMouseEnter={() => setActiveIdx(i)}
               aria-label={`${stage.name} — 목표: ${stage.target}`}
+              aria-current={i === activeIdx ? 'true' : undefined}
               tabIndex={0}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') selectStage(stage.id); }}
             >

@@ -109,6 +109,7 @@ export const en: Strings = {
     damageWarning:    "Damage risk! Use brush carefully.",
     alreadyFound:     "Already found this piece.",
     progressLabel:    "Excavation Progress",
+    revealLabel:      "Reveal",
     damageLabel:      "Fossil Damage",
     piecesLabel:      "Fossil Pieces",
     posLabel:         "Position",

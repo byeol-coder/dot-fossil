@@ -144,4 +144,9 @@ export type GameAction =
   | { type: 'DISMISS_DAMAGE_WARNING' }
   | { type: 'RESTART_STAGE' }
   | { type: 'RESULT_ACTION'; action: ResultAction }
-  | { type: 'SELECT_RESULT_ACTION'; index: number };
+  | { type: 'SELECT_RESULT_ACTION'; index: number }
+  | { type: 'SELECT_RESULT_ACTION_DELTA'; delta: number };
+
+// Number of buttons on the result screen (next_fossil / collection / retry / home).
+// Used to wrap delta-based keyboard navigation in the reducer.
+export const RESULT_ACTION_COUNT = 4;

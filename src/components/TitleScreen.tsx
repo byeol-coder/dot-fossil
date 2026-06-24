@@ -3,9 +3,15 @@ import type { Dispatch } from 'react';
 import type { GameAction } from '../types';
 import { useTranslation } from '../i18n';
 import { ASSETS } from '../assets';
+import DotPadConnector from './DotPadConnector';
+import type { DotPadStatus } from '../dotpad/useDotPad';
 
 interface TitleScreenProps {
   dispatch: Dispatch<GameAction>;
+  dotpadStatus: DotPadStatus;
+  onConnect: () => void;
+  onConnectDemo: () => void;
+  onDisconnect: () => void;
 }
 
 // ─── Image-sync positioning ──────────────────────────────────────────────────
@@ -13,14 +19,17 @@ interface TitleScreenProps {
 const IMG_W = 1672;
 const IMG_H = 941;
 
-// Bounding-box center points (cx, cy) and sizes (w, h) in source-image pixels.
-// Calibrated for 1672×941 Documents/Dot fossil_intro.png (version with "Dot Fossil" baked into sign).
+// Parchment scroll bounding box in source-image pixels
+// Measured from 1672×941 intro image with debug markers at 1920×1080
+const PARCHMENT = { left: 50, right: 880, top: 355, bottom: 447 } as const;
+
+// Overlay anchor points in source-image pixels (1672×941).
+// The new hero art has NO baked-in buttons, so these place VISIBLE controls
+// onto the open wood-desk strip along the bottom.
 const IMG = {
-  // Parchment strip just below the "Dot Fossil" sign — subtitle goes here
-  // With background-position:center top, oy=0. Calibrate by: cy = screen_y / scale
-  subtitle: { cx: 420, cy: 420, w: 600, h: 80 },
-  buttons:  { cy: 872 },   // baked-in pill buttons
-  lang:     { cx: 1490, cy: 913 },
+  buttons: { cx: 760, cy: 872 }, // centre of the 3-button menu row (bottom centre)
+  lang:    { cx: 1530, cy: 872 }, // language toggle (bottom right) — same baseline as menu
+  dotpad:  { cx: 250,  cy: 864 }, // DotPad connect chip (bottom left) — raised so its tall stack isn't clipped
 } as const;
 
 interface ImgTransform { scale: number; ox: number; oy: number; }
@@ -28,8 +37,8 @@ interface ImgTransform { scale: number; ox: number; oy: number; }
 function computeTransform(): ImgTransform {
   const vw = window.innerWidth, vh = window.innerHeight;
   const scale = Math.max(vw / IMG_W, vh / IMG_H);
-  // background-position: center top → horizontal center, vertical always starts at top (oy=0)
-  return { scale, ox: (IMG_W * scale - vw) / 2, oy: 0 };
+  // background-position: center center → equal vertical crop top/bottom
+  return { scale, ox: (IMG_W * scale - vw) / 2, oy: (IMG_H * scale - vh) / 2 };
 }
 
 // Recomputes whenever the viewport resizes
@@ -54,6 +63,27 @@ function centredStyle(
     top:  cy * tf.scale - tf.oy,
     transform: 'translate(-50%, -50%)',
     ...extra,
+  };
+}
+
+// Compute subtitle style that centres on the VISIBLE portion of the parchment.
+// When the viewport is narrow, the image is cropped horizontally (cover),
+// so the visible parchment center shifts right — this accounts for that.
+function computeSubtitleStyle(tf: ImgTransform): CSSProperties {
+  const vw = window.innerWidth;
+  // Visible parchment screen extents (clamped to viewport)
+  const pLeft  = Math.max(0,  PARCHMENT.left  * tf.scale - tf.ox);
+  const pRight = Math.min(vw, PARCHMENT.right * tf.scale - tf.ox);
+  const pCx    = (pLeft + pRight) / 2;
+  const pCy    = ((PARCHMENT.top + PARCHMENT.bottom) / 2) * tf.scale - tf.oy;
+  const pW     = Math.min(pRight - pLeft, vw * 0.52);
+  return {
+    position:  'absolute',
+    left:      pCx,
+    top:       pCy,
+    transform: 'translate(-50%, -50%)',
+    width:     pW,
+    minHeight: (PARCHMENT.bottom - PARCHMENT.top) * tf.scale,
   };
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -101,7 +131,7 @@ const GlobeIcon = () => (
   </svg>
 );
 
-export default function TitleScreen({ dispatch }: TitleScreenProps) {
+export default function TitleScreen({ dispatch, dotpadStatus, onConnect, onConnectDemo, onDisconnect }: TitleScreenProps) {
   const { t, lang, setLang } = useTranslation();
   const [activeBtn, setActiveBtn] = useState(0);
   const tf = useImgTransform();
@@ -142,17 +172,26 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
   }, [activeBtn, lang]);
 
   // Derived pixel positions — recalculated on every resize via tf
-  const subStyle = centredStyle(IMG.subtitle.cx, IMG.subtitle.cy, tf, {
-    width:     IMG.subtitle.w * tf.scale,
-    minHeight: IMG.subtitle.h * tf.scale,
-  });
+  const subStyle = computeSubtitleStyle(tf);
+
+  // Clamp nav/lang to always stay within viewport (buttons near image bottom may overflow on wide/short displays)
+  const vh = window.innerHeight;
   const navStyle: CSSProperties = {
     position:  'absolute',
-    left:      '50%',
-    top:       IMG.buttons.cy * tf.scale - tf.oy,
+    left:      IMG.buttons.cx * tf.scale - tf.ox,
+    top:       Math.min(IMG.buttons.cy * tf.scale - tf.oy, vh - 70),
     transform: 'translate(-50%, -50%)',
   };
-  const langStyle = centredStyle(IMG.lang.cx, IMG.lang.cy, tf);
+  const langStyle = centredStyle(IMG.lang.cx, IMG.lang.cy, tf, {
+    top: Math.min(IMG.lang.cy * tf.scale - tf.oy, vh - 36),
+  });
+  const dotpadStyle: CSSProperties = {
+    position:  'absolute',
+    left:      IMG.dotpad.cx * tf.scale - tf.ox,
+    top:       Math.min(IMG.dotpad.cy * tf.scale - tf.oy, vh - 30),
+    transform: 'translate(-50%, -50%)',
+    zIndex:    20,
+  };
 
   return (
     <div
@@ -168,7 +207,7 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
         <span className="title-subtitle-dash">—</span>
       </div>
 
-      {/* ── Three pill buttons — transparent overlays over baked-in buttons ── */}
+      {/* ── Three menu buttons — visible wood/metal buttons on the open desk ── */}
       <nav className="title-pill-nav" aria-label="메인 메뉴" style={navStyle}>
         {BUTTONS.map((btn, i) => (
           <button
@@ -179,9 +218,21 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
             aria-current={i === activeBtn ? 'true' : undefined}
             autoFocus={i === 0}
           >
+            <span className="title-pill-icon" aria-hidden="true"><btn.Icon /></span>
+            <span className="title-pill-label">{btn.label}</span>
           </button>
         ))}
       </nav>
+
+      {/* ── DotPad connect — bottom left ── */}
+      <div style={dotpadStyle}>
+        <DotPadConnector
+          status={dotpadStatus}
+          onConnect={onConnect}
+          onConnectDemo={onConnectDemo}
+          onDisconnect={onDisconnect}
+        />
+      </div>
 
       {/* ── Language toggle ── */}
       <button
@@ -194,8 +245,7 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
         <span>{t(`lang.${lang}`)}</span>
       </button>
 
-      {/* ── Version ── */}
-      <div className="title-version" aria-hidden="true">v1.0.0</div>
+      {/* Version label is baked into the new artwork (bottom-left), so no overlay here. */}
     </div>
   );
 }

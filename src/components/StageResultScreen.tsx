@@ -1,26 +1,64 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction, GameState, ResultAction } from '../types';
 import { STAGES } from '../data/stages';
 import { ASSETS } from '../assets';
 import { getFossilPattern } from '../dotpad/fossilPatterns';
+import { FOSSIL_IMG } from '../data/fossilImages';
 import GameAssetImage from './GameAssetImage';
 import { useTranslation } from '../i18n';
 
-const FOSSIL_IMG: Record<string, string> = {
-  rib:             ASSETS.fossils.rib,
-  shell:           ASSETS.fossils.ammonite,
-  skull:           ASSETS.fossils.skull,
-  leaf:            ASSETS.fossils.leaf,
-  vertebra:        ASSETS.fossils.vertebra,
-  claw:            ASSETS.fossils.claw,
-  tooth:           ASSETS.fossils.tooth,
-  fish:            ASSETS.fossils.fish,
-  footprint:       ASSETS.fossils.footprint,
-  ammonite:        ASSETS.fossils.ammonite,
-  legfoot:         ASSETS.fossils.legfoot,
-  partialSkeleton: ASSETS.fossils.partialSkeleton,
-};
+// ─── Image-sync positioning (excavation-result-screen-bg.png, 1672×941) ──────
+const SR_IMG_W = 1672;
+const SR_IMG_H = 941;
+
+// Baked-in element centres in source-image pixels
+const SR_IMG = {
+  fossil:        { cx: 571,  cy: 360, w: 430, h: 360 }, // left parchment (fossil skeleton)
+  name:          { cx: 496,  cy: 765, w: 300 },          // bottom-left nameplate
+  medal:         { cx: 811,  cy: 678, w: 240 },          // centre gold ribbon medal
+  stageName:     { cx: 1193, cy: 198, w: 430 },          // right-top plate
+  completionBar: { cx: 1190, cy: 343, w: 450 },          // right green bar
+  gauge:         { cx: 1067, cy: 491, w: 175, h: 165 },  // circular gauge ring
+  statsPanel:    { cx: 1313, cy: 494, w: 215, h: 165 },  // right cream stats panel
+  btns: {
+    next_fossil: { cx: 1079, cy: 773, w: 210, h: 56 },   // bottom-left green bar
+    retry:       { cx: 1313, cy: 773, w: 215, h: 56 },   // bottom-right green bar
+    collection:  { cx: 437,  cy: 765, w: 135, h: 50 },   // nameplate left half
+    home:        { cx: 558,  cy: 765, w: 120, h: 50 },   // nameplate right half
+  } as Record<ResultAction, { cx: number; cy: number; w: number; h: number }>,
+} as const;
+
+function srComputeTransform() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const scale = Math.max(vw / SR_IMG_W, vh / SR_IMG_H);
+  return { scale, ox: (SR_IMG_W * scale - vw) / 2, oy: (SR_IMG_H * scale - vh) / 2 };
+}
+
+function useSrTransform() {
+  const [tf, setTf] = useState(srComputeTransform);
+  useEffect(() => {
+    const upd = () => setTf(srComputeTransform());
+    window.addEventListener('resize', upd);
+    return () => window.removeEventListener('resize', upd);
+  }, []);
+  return tf;
+}
+
+type SrTf = ReturnType<typeof srComputeTransform>;
+
+function srBox(cx: number, cy: number, w: number, h: number | undefined, tf: SrTf, extra?: CSSProperties): CSSProperties {
+  return {
+    position: 'absolute',
+    left: cx * tf.scale - tf.ox,
+    top:  cy * tf.scale - tf.oy,
+    width: w * tf.scale,
+    ...(h != null ? { height: h * tf.scale } : {}),
+    transform: 'translate(-50%, -50%)',
+    ...extra,
+  };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function StarSVG({ filled }: { filled: boolean }) {
   return (
@@ -69,6 +107,7 @@ interface StageResultScreenProps {
 
 export default function StageResultScreen({ state, dispatch, sendRawHex }: StageResultScreenProps) {
   const { t } = useTranslation();
+  const tf        = useSrTransform();
   const stage     = STAGES[state.stageId] ?? STAGES['desert_rib'];
   const result    = state.result;
   const grade     = result?.grade ?? 'restore_needed';
@@ -103,24 +142,31 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the latest selected index in a ref so the (stable) key handler always
+  // activates the currently-highlighted action — no stale closure on rapid input.
+  const selectedIdxRef = useRef(selectedIdx);
+  selectedIdxRef.current = selectedIdx;
+  const actionsRef = useRef(RESULT_ACTIONS);
+  actionsRef.current = RESULT_ACTIONS;
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        dispatch({ type: 'SELECT_RESULT_ACTION', index: (selectedIdx + 1) % RESULT_ACTIONS.length });
+        dispatch({ type: 'SELECT_RESULT_ACTION_DELTA', delta: 1 });
       }
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        dispatch({ type: 'SELECT_RESULT_ACTION', index: (selectedIdx - 1 + RESULT_ACTIONS.length) % RESULT_ACTIONS.length });
+        dispatch({ type: 'SELECT_RESULT_ACTION_DELTA', delta: -1 });
       }
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        dispatch({ type: 'RESULT_ACTION', action: RESULT_ACTIONS[selectedIdx].action });
+        dispatch({ type: 'RESULT_ACTION', action: actionsRef.current[selectedIdxRef.current].action });
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dispatch, selectedIdx, RESULT_ACTIONS]);
+  }, [dispatch]);
 
   const handleAction = useCallback((action: ResultAction) => {
     dispatch({ type: 'RESULT_ACTION', action });
@@ -137,114 +183,88 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
     >
       <div className="gw-frame" aria-hidden="true" />
 
-      {/* Banner */}
-      <div className="gw-banner" aria-hidden="true">
-        <div style={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-          <svg width="52" height="38" viewBox="0 0 52 38" fill="none">
-            <ellipse cx="26" cy="9" rx="8" ry="5.5" fill="#f0c040" />
-            <ellipse cx="26" cy="8" rx="5.5" ry="3.5" fill="#f5d870" opacity="0.7" />
-            <ellipse cx="26" cy="7" rx="2.5" ry="1.5" fill="#fff8c0" opacity="0.6" />
-            <path d="M4 22 Q4 9 26 9 Q48 9 48 22" stroke="#9a7840" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <circle cx="4" cy="24" r="3.5" fill="#9a7840" />
-            <circle cx="48" cy="24" r="3.5" fill="#9a7840" />
-          </svg>
-        </div>
-        <div className="gw-banner-plate">{t('result.title')}</div>
+      {/* ── Fossil display — synced to left parchment ── */}
+      <div className="sr-fossil-frame" aria-label={stage.name}
+        style={srBox(SR_IMG.fossil.cx, SR_IMG.fossil.cy, SR_IMG.fossil.w, SR_IMG.fossil.h, tf)}
+      >
+        {fossilImg && (
+          <GameAssetImage
+            src={fossilImg}
+            alt={mainFossilId}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        )}
+        {completion >= 90 && <div className="sr-fossil-glow" aria-hidden="true" />}
       </div>
 
-      {/* Left panel — fossil display */}
-      <div className="sr-left-panel" aria-label={t('result.title')}>
-        <div className="sr-fossil-frame">
-          {fossilImg && (
-            <GameAssetImage
-              src={fossilImg}
-              alt={mainFossilId}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          )}
-          {completion >= 90 && (
-            <div className="sr-fossil-glow" aria-hidden="true" />
-          )}
-        </div>
-        <div className="sr-fossil-name">{stage.name}</div>
-
-        {/* Stars */}
+      {/* ── Stars + grade — synced to centre medal ── */}
+      <div className="sr-medal" style={srBox(SR_IMG.medal.cx, SR_IMG.medal.cy, SR_IMG.medal.w, undefined, tf)}>
         <div className="sr-stars" aria-label={gradeLabel}>
           {[1, 2, 3].map(n => <StarSVG key={n} filled={stars >= n} />)}
         </div>
         <div className="sr-rating-label">{gradeLabel}</div>
+      </div>
 
+      {/* ── Stage name — synced to right-top plate ── */}
+      <div className="sr-stage-name" aria-label={stage.name}
+        style={srBox(SR_IMG.stageName.cx, SR_IMG.stageName.cy, SR_IMG.stageName.w, undefined, tf)}
+      >
+        <span className="sr-stage-name-ko">{stage.name}</span>
+        {stage.nameEn && <span className="sr-stage-name-en">{stage.nameEn}</span>}
+      </div>
+
+      {/* ── Completion bar — synced to right green bar ── */}
+      <div className="sr-stat sr-stat-bar-row"
+        style={srBox(SR_IMG.completionBar.cx, SR_IMG.completionBar.cy, SR_IMG.completionBar.w, undefined, tf)}
+      >
+        <span className="sr-stat-label">{t('result.completion')}</span>
+        <div className="sr-stat-bar">
+          <div className="sr-bar-fill completion" style={{ width: `${completion}%` }} />
+        </div>
+        <span className="sr-stat-val">{completion}%</span>
+      </div>
+
+      {/* ── Completion gauge — synced to circle gauge ── */}
+      <div className="sr-gauge"
+        style={srBox(SR_IMG.gauge.cx, SR_IMG.gauge.cy, SR_IMG.gauge.w, SR_IMG.gauge.h, tf)}
+        aria-hidden="true"
+      >
+        <CircleGaugeSVG pct={completion} color="#5ab040" />
+      </div>
+
+      {/* ── Conserve stats + pieces — synced to right cream panel ── */}
+      <div className="sr-stats-panel"
+        style={srBox(SR_IMG.statsPanel.cx, SR_IMG.statsPanel.cy, SR_IMG.statsPanel.w, SR_IMG.statsPanel.h, tf)}
+        role="region" aria-label={t('result.conserveLabel')}
+      >
+        <div className="sr-statp-row">
+          <span className="sr-statp-label">{t('result.conserveLabel')}</span>
+          <span className="sr-statp-val" style={{ color: '#2f80b0' }}>{conservePct}<small>%</small></span>
+        </div>
         <div className="sr-pieces-row">
           {Array.from({ length: state.totalPieces }).map((_, i) => (
-            <div
-              key={i}
-              className={`sr-piece-dot${i < state.foundPieces ? ' found' : ''}`}
-              aria-hidden="true"
-            />
+            <div key={i} className={`sr-piece-dot${i < state.foundPieces ? ' found' : ''}`} aria-hidden="true" />
           ))}
         </div>
         <div className="sr-pieces-label">{state.foundPieces}/{state.totalPieces} {t('result.piecesLabel')}</div>
       </div>
 
-      {/* Right panel — stats + actions */}
-      <div className="sr-right-panel" role="region" aria-label={t('result.keyHint')}>
-        <div className="sr-stage-name" aria-label={stage.nameEn ?? stage.name}>
-          {stage.nameEn ?? stage.name}
-        </div>
-
-        {/* Progress bars */}
-        <div className="sr-stat">
-          <span className="sr-stat-label">{t('result.completion')}</span>
-          <div className="sr-stat-bar">
-            <div className="sr-bar-fill completion" style={{ width: `${completion}%` }} />
-          </div>
-          <span className="sr-stat-val">{completion}%</span>
-        </div>
-        <div className="sr-stat">
-          <span className="sr-stat-label">{t('result.conserveLabel')}</span>
-          <div className="sr-stat-bar">
-            <div className="sr-bar-fill conserve" style={{ width: `${conservePct}%` }} />
-          </div>
-          <span className="sr-stat-val">{conservePct}%</span>
-        </div>
-
-        {/* Circle gauges */}
-        <div className="sr-gauges-row" aria-hidden="true">
-          <div className="sr-gauge">
-            <CircleGaugeSVG pct={completion} color="#5ab040" />
-            <span>{t('result.excavateLabel')}</span>
-          </div>
-          <div className="sr-gauge">
-            <CircleGaugeSVG pct={conservePct} color="#40a0d0" />
-            <span>{t('result.conserveBtn')}</span>
-          </div>
-        </div>
-
-        {/* 4 result action buttons */}
-        <div
-          className="sr-btns"
-          role="group"
-          aria-label={t('result.keyHint')}
-        >
-          {RESULT_ACTIONS.map(({ action, label }, i) => (
-            <button
-              key={action}
-              className={`${i === 0 ? 'gw-oval-btn' : 'gw-stone-btn'} ${selectedIdx === i ? ' active' : ''}`}
-              onClick={() => handleAction(action)}
-              aria-label={label}
-              aria-current={selectedIdx === i ? 'true' : undefined}
-              style={selectedIdx === i ? { outline: '2px solid #f0c040', outlineOffset: 2 } : undefined}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Keyboard hint */}
-        <p className="sr-key-hint" aria-hidden="true">
-          {t('result.keyHint')}
-        </p>
-      </div>
+      {/* ── Action buttons — synced to baked-in slots ── */}
+      {RESULT_ACTIONS.map(({ action, label }, i) => {
+        const z = SR_IMG.btns[action];
+        return (
+          <button
+            key={action}
+            className={`sr-action-btn${selectedIdx === i ? ' active' : ''}${action === 'next_fossil' ? ' primary' : ''}`}
+            onClick={() => handleAction(action)}
+            aria-label={label}
+            aria-current={selectedIdx === i ? 'true' : undefined}
+            style={srBox(z.cx, z.cy, z.w, z.h, tf)}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }

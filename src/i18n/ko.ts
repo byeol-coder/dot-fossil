@@ -107,6 +107,7 @@ export const ko = {
     damageWarning:    "손상 위험! 브러시로 천천히 해보자.",
     alreadyFound:     "이미 발견한 조각이야.",
     progressLabel:    "발굴 진행도",
+    revealLabel:      "현재 노출",
     damageLabel:      "화석 손상도",
     piecesLabel:      "발굴 조각",
     posLabel:         "위치",

@@ -6,7 +6,7 @@ import { TOOL_DEFS } from '../data/tools';
 import { renderToDotGrid } from '../dotpad/tactilePatterns';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 import type { DotPadStatus } from '../dotpad/useDotPad';
-import { getFossilPattern, getExcavationSoilPattern, hexPatternToDotGrid } from '../dotpad/fossilPatterns';
+import { getFossilPattern, hexPatternToDotGrid } from '../dotpad/fossilPatterns';
 import DotPadPreview from './DotPadPreview';
 import BrailleMessageBar from './BrailleMessageBar';
 import DotPadConnector from './DotPadConnector';
@@ -16,6 +16,60 @@ import { ASSETS, TOOL_ASSET, CHARACTER_ACTION_ASSET } from '../assets';
 import { useTranslation } from '../i18n';
 
 const TOOL_LIST: ToolType[] = ['brush', 'careful_dig', 'probe'];
+
+// ─── Image-sync positioning (play-screen-*-bg.png, 1672×941) ─────────────────
+const DIG_IMG_W = 1672;
+const DIG_IMG_H = 941;
+
+// Baked-in UI zones in source-image pixels
+const DIG_IMG = {
+  hud: [
+    { cx: 326,  cy: 82 },  // progress
+    { cx: 616,  cy: 82 },  // damage
+    { cx: 900,  cy: 82 },  // pieces
+    { cx: 1246, cy: 82 },  // position / mode
+  ],
+  grid:      { cx: 773, cy: 430, w: 905, h: 500 },  // central excavation board
+  toolPanel: { cx: 1432, cy: 461, w: 208, h: 405 }, // right vertical 4-slot panel (below header medallion)
+  speech:    { cx: 508, cy: 783, w: 375 },          // bottom-left parchment
+  braille:   { cx: 942, cy: 783, w: 430, h: 110 },  // bottom-center long bar
+  btns: [
+    { cx: 1229, cy: 783 },
+    { cx: 1343, cy: 783 },
+    { cx: 1457, cy: 783 },
+  ],
+} as const;
+
+function digComputeTransform() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const scale = Math.max(vw / DIG_IMG_W, vh / DIG_IMG_H);
+  return { scale, ox: (DIG_IMG_W * scale - vw) / 2, oy: (DIG_IMG_H * scale - vh) / 2 };
+}
+
+function useDigTransform() {
+  const [tf, setTf] = useState(digComputeTransform);
+  useEffect(() => {
+    const upd = () => setTf(digComputeTransform());
+    window.addEventListener('resize', upd);
+    return () => window.removeEventListener('resize', upd);
+  }, []);
+  return tf;
+}
+
+type DigTf = ReturnType<typeof digComputeTransform>;
+
+// Box centred on an image-space point with image-scaled width/height
+function digBox(cx: number, cy: number, w: number, h: number | undefined, tf: DigTf): React.CSSProperties {
+  return {
+    position: 'absolute',
+    left: cx * tf.scale - tf.ox,
+    top:  cy * tf.scale - tf.oy,
+    width: w * tf.scale,
+    ...(h != null ? { height: h * tf.scale } : {}),
+    transform: 'translate(-50%, -50%)',
+  };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 type DigView = 'playing' | 'fossil-found' | 'damage-warning';
 
@@ -159,29 +213,18 @@ interface DigScreenProps {
   dispatch: Dispatch<GameAction>;
   dotpadStatus: DotPadStatus;
   connect: () => void;
+  connectDemo: () => void;
   disconnect: () => void;
-  sendGrid: (g: DotGrid) => void; // kept for compatibility; hardware uses sendRawHex
+  selfTest: () => void;
+  sendGrid: (g: DotGrid) => void; // live synthesized grid → device (graphic mode)
   sendRawHex: (h: string) => void;
 }
 
-function AmmoniteSVG() {
-  return (
-    <svg width="52" height="38" viewBox="0 0 52 38" fill="none" aria-hidden="true">
-      <ellipse cx="26" cy="9" rx="8" ry="5.5" fill="#5a90d0" />
-      <ellipse cx="26" cy="8" rx="5.5" ry="3.5" fill="#7ab0ee" opacity="0.7" />
-      <ellipse cx="26" cy="7" rx="2.5" ry="1.5" fill="#a8d0ff" opacity="0.6" />
-      <path d="M4 22 Q4 9 26 9 Q48 9 48 22" stroke="#9a7840" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-      <circle cx="4" cy="24" r="3.5" fill="#9a7840" />
-      <circle cx="48" cy="24" r="3.5" fill="#9a7840" />
-      <path d="M8 30 Q8 22 26 22 Q44 22 44 30" stroke="#7a5820" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.4" />
-    </svg>
-  );
-}
-
-export default function DigScreen({ state, dispatch, dotpadStatus, connect, disconnect, sendGrid: _sendGrid, sendRawHex }: DigScreenProps) {
+export default function DigScreen({ state, dispatch, dotpadStatus, connect, connectDemo, disconnect, selfTest, sendGrid, sendRawHex }: DigScreenProps) {
   const { t } = useTranslation();
   const stage = STAGES[state.stageId];
   const { completion, damage, foundPieces, totalPieces, currentTool, characterAction } = state;
+  const tf = useDigTransform();
 
   const [digView, setDigView] = useState<DigView>('playing');
   const prevFoundPieces = useRef(state.foundPieces);
@@ -204,20 +247,23 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
 
   const displayGrid = fossilFoundGrid ?? dotGrid;
 
-  // Best reveal progress across all fossil pieces (0-100)
+  // Best in-progress reveal across all fossil pieces (0-100) — drives the
+  // continuous "현재 조각 노출도" sub-bar so the player feels gradual emergence
+  // between the coarse 25%-per-piece completion steps.
   const bestRevealProgress = useMemo(() => {
-    if (state.fossilPieces.length === 0) return 0;
-    return Math.max(...state.fossilPieces.map(p => p.revealProgress));
+    const inProgress = state.fossilPieces.filter(p => p.revealProgress > 0 && p.revealProgress < 100);
+    if (inProgress.length === 0) return 0;
+    return Math.round(Math.max(...inProgress.map(p => p.revealProgress)));
   }, [state.fossilPieces]);
 
-  // Soil stage index (0-8) — changes only at thresholds
-  const soilPageIdx = Math.min(8, Math.floor((bestRevealProgress / 100) * 9));
-
-  // Send DotPad soil-removal stage pattern when index changes or device connects
+  // Send the LIVE synthesized tactile image (soil + emerging fossil shape + cursor)
+  // to the device whenever it changes. The SDK diffs lines and updates only the
+  // changed cells, so per-dig updates stay cheap. This makes the hardware feel the
+  // soil drop away and the bone rise — matching the on-screen preview, not just a
+  // generic soil-clearing animation.
   useEffect(() => {
-    sendRawHex(getExcavationSoilPattern(bestRevealProgress));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [soilPageIdx, dotpadStatus, sendRawHex]);
+    if (dotpadStatus === 'connected') sendGrid(displayGrid);
+  }, [displayGrid, dotpadStatus, sendGrid]);
 
   // Fossil piece found popup — send the fossil's bone tactile pattern to DotPad
   useEffect(() => {
@@ -262,20 +308,84 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
       {/* Wooden border frame */}
       <div className="gw-frame" aria-hidden="true" />
 
-      {/* Stone ammonite banner */}
-      <div className="gw-banner" aria-hidden="true">
-        <div style={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-          <AmmoniteSVG />
+      {/* ── Top HUD panels — synced to baked-in 4 plates ── */}
+      {/* Panel 1: progress (piece completion) + continuous reveal sub-bar */}
+      <div className="dg-hud-panel" style={digBox(DIG_IMG.hud[0].cx, DIG_IMG.hud[0].cy, 280, 88, tf)}>
+        <div className="dg-hud-label">{t('gameplay.progressLabel')} <span className="dg-hud-val-inline">{completion}%</span></div>
+        <div className="gw-dig-stat-bar">
+          <div
+            className="gw-dig-bar-fill completion"
+            style={{ width: `${completion}%` }}
+            role="progressbar" aria-valuenow={completion} aria-valuemin={0} aria-valuemax={100}
+            aria-label={`${t('gameplay.progressLabel')} ${completion}%`}
+          />
         </div>
-        <div className="gw-banner-plate">{stage?.name ?? '사막 발굴지'}</div>
+        {/* Continuous reveal of the piece currently being uncovered */}
+        <div className="dg-reveal-row">
+          <span className="dg-reveal-label">{t('gameplay.revealLabel')}</span>
+          <div className="gw-dig-stat-bar dg-reveal-bar">
+            <div
+              className="gw-dig-bar-fill reveal"
+              style={{ width: `${bestRevealProgress}%` }}
+              role="progressbar" aria-valuenow={bestRevealProgress} aria-valuemin={0} aria-valuemax={100}
+              aria-label={`${t('gameplay.revealLabel')} ${bestRevealProgress}%`}
+            />
+          </div>
+          <span className="dg-reveal-val">{bestRevealProgress}%</span>
+        </div>
       </div>
 
-      {/* ── Wooden bulletin board (DotPad grid) ── */}
+      {/* Panel 2: damage */}
+      <div className="dg-hud-panel" style={digBox(DIG_IMG.hud[1].cx, DIG_IMG.hud[1].cy, 280, 88, tf)}>
+        <div className="dg-hud-label">{t('gameplay.damageLabel')}</div>
+        <div className="gw-dig-stat-bar">
+          <div
+            className={`gw-dig-bar-fill damage${damage > 60 ? ' danger' : damage > 40 ? ' warn' : ''}`}
+            style={{ width: `${damage}%` }}
+            role="progressbar" aria-valuenow={damage} aria-valuemin={0} aria-valuemax={100}
+            aria-label={`${t('gameplay.damageLabel')} ${damage}%`}
+          />
+        </div>
+        <div
+          className={`dg-hud-val${damage > 60 ? ' danger' : damage > 40 ? ' warn' : ''}`}
+          style={damage > 60 ? { color: '#e06040' } : damage > 40 ? { color: '#e09030' } : undefined}
+        >
+          {damage}%
+        </div>
+      </div>
+
+      {/* Panel 3: pieces */}
+      <div className="dg-hud-panel" style={digBox(DIG_IMG.hud[2].cx, DIG_IMG.hud[2].cy, 280, 88, tf)}>
+        <div className="dg-hud-label">{t('gameplay.piecesLabel')} ({foundPieces}/{totalPieces})</div>
+        <div className="gw-dig-piece-slots" aria-label={`${foundPieces}/${totalPieces}`}>
+          {Array.from({ length: totalPieces }).map((_, i) => (
+            <div key={i} className={`gw-dig-piece-slot${i < foundPieces ? ' found' : ''}`} aria-hidden="true" />
+          ))}
+        </div>
+      </div>
+
+      {/* Panel 4: position + mode toggle */}
+      <div className="dg-hud-panel" style={digBox(DIG_IMG.hud[3].cx, DIG_IMG.hud[3].cy, 280, 88, tf)}>
+        <div className="dg-hud-label" aria-live="polite">
+          {t('gameplay.posLabel')}: ({state.cursor.x + 1}, {state.cursor.y + 1})
+        </div>
+        <button
+          className="gw-dig-mode-toggle"
+          onClick={() => dispatch({ type: 'SET_MODE', mode: state.mode === 'clue_scan' ? 'precision_dig' : 'clue_scan' })}
+          aria-label={`현재 모드: ${state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}. 클릭하여 전환`}
+        >
+          <span>{state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}</span>
+          <span className="gw-dig-key">F1/F2</span>
+        </button>
+      </div>
+
+      {/* ── Excavation board (DotPad grid) — synced to baked-in centre board ── */}
       <div
         className={`gw-dig-board${damage > 60 ? ' danger' : characterAction === 'found' ? ' found' : ''}`}
         aria-label="발굴 지도"
+        style={digBox(DIG_IMG.grid.cx, DIG_IMG.grid.cy, DIG_IMG.grid.w, DIG_IMG.grid.h, tf)}
       >
-        <div className="gw-dig-board-inner" style={{ position: 'relative' }}>
+        <div className="gw-dig-board-inner">
           <DotPadPreview
             dotGrid={displayGrid}
             stageWidth={stage?.width ?? 20}
@@ -290,127 +400,42 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         </div>
       </div>
 
-      {/* ── Right info card ── */}
-      <div className="gw-dig-rcard gw-card-frame" aria-label="발굴 정보">
-        <div className="gw-card-badge" aria-hidden="true" style={{ marginTop: -17 }} />
-
-        <div className="gw-dig-rcard-body">
-          {/* Progress stats */}
-          <div className="gw-dig-stat">
-            <div className="gw-dig-stat-label">{t('gameplay.progressLabel')}</div>
-            <div className="gw-dig-stat-bar">
-              <div
-                className="gw-dig-bar-fill completion"
-                style={{ width: `${completion}%` }}
-                role="progressbar"
-                aria-valuenow={completion}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={`${t('gameplay.progressLabel')} ${completion}%`}
-              />
-            </div>
-            <div className="gw-dig-stat-val">{completion}%</div>
-          </div>
-
-          <div className="gw-dig-stat">
-            <div className="gw-dig-stat-label">{t('gameplay.damageLabel')}</div>
-            <div className="gw-dig-stat-bar">
-              <div
-                className={`gw-dig-bar-fill damage${damage > 60 ? ' danger' : damage > 40 ? ' warn' : ''}`}
-                style={{ width: `${damage}%` }}
-                role="progressbar"
-                aria-valuenow={damage}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={`${t('gameplay.damageLabel')} ${damage}%`}
-              />
-            </div>
-            <div
-              className={`gw-dig-stat-val${damage > 60 ? ' danger' : damage > 40 ? ' warn' : ''}`}
-              style={damage > 60 ? { color: '#c03030' } : damage > 40 ? { color: '#c06010' } : undefined}
+      {/* ── Right tool panel — synced to baked-in vertical slots ── */}
+      <div
+        className="dg-tool-panel"
+        aria-label={t('gameplay.toolSelectLabel')}
+        style={digBox(DIG_IMG.toolPanel.cx, DIG_IMG.toolPanel.cy, DIG_IMG.toolPanel.w, DIG_IMG.toolPanel.h, tf)}
+      >
+        {TOOL_LIST.map(toolId => {
+          const tool = TOOL_DEFS[toolId];
+          return (
+            <button
+              key={toolId}
+              className={`gw-dig-tool-btn${currentTool === toolId ? ' active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_TOOL', tool: toolId })}
+              aria-pressed={currentTool === toolId}
+              aria-label={`${tool.name} — ${tool.shortcut}키`}
             >
-              {damage}%
-            </div>
-          </div>
-
-          {/* Fossil piece slots */}
-          <div className="gw-dig-stat">
-            <div className="gw-dig-stat-label">{t('gameplay.piecesLabel')} ({foundPieces}/{totalPieces})</div>
-            <div className="gw-dig-piece-slots" aria-label={`${foundPieces}/${totalPieces}`}>
-              {Array.from({ length: totalPieces }).map((_, i) => (
-                <div key={i} className={`gw-dig-piece-slot${i < foundPieces ? ' found' : ''}`} aria-hidden="true" />
-              ))}
-            </div>
-          </div>
-
-          {/* Mode & cursor position */}
-          <div className="gw-dig-stat" aria-live="polite" style={{ color: '#6a4420', fontSize: '0.7rem' }}>
-            {t('gameplay.posLabel')}: ({state.cursor.x + 1}, {state.cursor.y + 1})
-          </div>
-          <button
-            className="gw-dig-mode-toggle"
-            onClick={() => dispatch({ type: 'SET_MODE', mode: state.mode === 'clue_scan' ? 'precision_dig' : 'clue_scan' })}
-            aria-label={`현재 모드: ${state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}. 클릭하여 전환`}
-          >
-            <span>{state.mode === 'clue_scan' ? t('gameplay.clueMode') : t('gameplay.precisionMode')}</span>
-            <span className="gw-dig-key">F1/F2</span>
-          </button>
-
-          <div className="gw-dig-divider" aria-hidden="true" />
-
-          {/* Tool selection */}
-          <div className="gw-dig-section-label">{t('gameplay.toolSelectLabel')}</div>
-          {TOOL_LIST.map(toolId => {
-            const tool = TOOL_DEFS[toolId];
-            return (
-              <button
-                key={toolId}
-                className={`gw-dig-tool-btn${currentTool === toolId ? ' active' : ''}`}
-                onClick={() => dispatch({ type: 'SET_TOOL', tool: toolId })}
-                aria-pressed={currentTool === toolId}
-                aria-label={`${tool.name} — ${tool.shortcut}키`}
-              >
-                <GameAssetImage
-                  src={TOOL_ASSET[toolId]}
-                  alt=""
-                  width={22}
-                  height={22}
-                  style={{ objectFit: 'contain', flexShrink: 0 }}
-                />
-                {tool.name}
-                <span className="gw-dig-key">{tool.shortcut}</span>
-              </button>
-            );
-          })}
-
-          <div className="gw-dig-divider" aria-hidden="true" />
-
-          {/* DotPad connector */}
+              <GameAssetImage
+                src={TOOL_ASSET[toolId]}
+                alt=""
+                width={22}
+                height={22}
+                style={{ objectFit: 'contain', flexShrink: 0 }}
+              />
+              {tool.name}
+              <span className="gw-dig-key">{tool.shortcut}</span>
+            </button>
+          );
+        })}
+        <div className="dg-tool-panel-connector">
           <DotPadConnector
             status={dotpadStatus}
             onConnect={connect}
+            onConnectDemo={connectDemo}
             onDisconnect={disconnect}
+            onSelfTest={selfTest}
           />
-
-          {/* Nav buttons */}
-          <div className="gw-dig-rcard-nav">
-            <button
-              className="gw-stone-btn"
-              style={{ fontSize: '0.82rem', padding: '7px 12px', width: '100%' }}
-              onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'collection' })}
-              aria-label={t('common.collection')}
-            >
-              {t('common.collection')}
-            </button>
-            <button
-              className="gw-stone-btn"
-              style={{ fontSize: '0.82rem', padding: '7px 12px', width: '100%' }}
-              onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'title' })}
-              aria-label={t('gameplay.menuBtn')}
-            >
-              {t('gameplay.menuBtn')}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -423,30 +448,50 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, disc
         />
       </div>
 
-      {/* ── Character speech bubble ── */}
+      {/* ── Character speech bubble — synced to bottom-left parchment ── */}
       {(state.dialogueMessage || state.brailleMessage) && (
-        <div className="dg-speech-bubble" role="status" aria-live="polite" aria-atomic="true">
+        <div
+          className="dg-speech-bubble"
+          role="status" aria-live="polite" aria-atomic="true"
+          style={digBox(DIG_IMG.speech.cx, DIG_IMG.speech.cy, DIG_IMG.speech.w, undefined, tf)}
+        >
           {state.dialogueMessage || state.brailleMessage}
         </div>
       )}
 
-      {/* ── Green CTA — use current tool ── */}
-      <div className="gw-dig-cta">
-        <button
-          className="gw-oval-btn"
-          onClick={() => dispatch({ type: 'USE_TOOL' })}
-          aria-label={`${t('gameplay.useTool')} ${t('gameplay.useToolKey')}`}
-          style={{ padding: '12px 36px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          {t('gameplay.useTool')}
-          <span className="gw-dig-key" style={{ opacity: 0.75, fontSize: '0.65rem' }}>Space</span>
-        </button>
-      </div>
-
-      {/* ── Braille message bar ── */}
-      <div className="gw-dig-braille">
+      {/* ── Braille message bar — synced to bottom-center bar ── */}
+      <div
+        className="gw-dig-braille"
+        style={digBox(DIG_IMG.braille.cx, DIG_IMG.braille.cy, DIG_IMG.braille.w, DIG_IMG.braille.h, tf)}
+      >
         <BrailleMessageBar message={state.brailleMessage} label={state.brailleLabel} />
       </div>
+
+      {/* ── Bottom-right action buttons — synced to baked-in 3 buttons ── */}
+      <button
+        className="dg-action-btn dg-action-use"
+        onClick={() => dispatch({ type: 'USE_TOOL' })}
+        aria-label={`${t('gameplay.useTool')} ${t('gameplay.useToolKey')}`}
+        style={digBox(DIG_IMG.btns[0].cx, DIG_IMG.btns[0].cy, 116, 64, tf)}
+      >
+        {t('gameplay.useTool')}
+      </button>
+      <button
+        className="dg-action-btn"
+        onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'collection' })}
+        aria-label={t('common.collection')}
+        style={digBox(DIG_IMG.btns[1].cx, DIG_IMG.btns[1].cy, 116, 64, tf)}
+      >
+        {t('common.collection')}
+      </button>
+      <button
+        className="dg-action-btn"
+        onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'title' })}
+        aria-label={t('gameplay.menuBtn')}
+        style={digBox(DIG_IMG.btns[2].cx, DIG_IMG.btns[2].cy, 116, 64, tf)}
+      >
+        {t('gameplay.menuBtn')}
+      </button>
 
       {/* ── Popups ── */}
       {digView === 'fossil-found' && (

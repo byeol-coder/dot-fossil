@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction, GameMode } from '../types';
 
-export function useKeyboardInput(dispatch: Dispatch<GameAction>, mode: GameMode) {
+export function useKeyboardInput(dispatch: Dispatch<GameAction>, mode: GameMode, enabled: boolean = true) {
   useEffect(() => {
+    if (!enabled) return;
     function handleKey(e: KeyboardEvent) {
       // Ignore input inside form elements so accessibility tools still work
       const tag = (e.target as HTMLElement)?.tagName;
@@ -31,5 +32,5 @@ export function useKeyboardInput(dispatch: Dispatch<GameAction>, mode: GameMode)
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [dispatch, mode]);
+  }, [dispatch, mode, enabled]);
 }

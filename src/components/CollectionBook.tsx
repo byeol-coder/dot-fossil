@@ -2,30 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction, FossilPiece } from '../types';
 import { FOSSIL_DEFS } from '../data/fossils';
+import { FOSSIL_IMG } from '../data/fossilImages';
 import { ASSETS } from '../assets';
 import { getFossilPattern } from '../dotpad/fossilPatterns';
 import GameAssetImage from './GameAssetImage';
 import { useTranslation } from '../i18n';
-
-const FOSSIL_IMG: Record<string, string> = {
-  rib:             ASSETS.fossils.rib,
-  shell:           ASSETS.fossils.ammonite,
-  skull:           ASSETS.fossils.skull,
-  leaf:            ASSETS.fossils.leaf,
-  skull_demo:      ASSETS.fossils.skull,
-  leaf_demo:       ASSETS.fossils.leaf,
-  vertebra:        ASSETS.fossils.vertebra,
-  claw:            ASSETS.fossils.claw,
-  tooth:           ASSETS.fossils.tooth,
-  fish:            ASSETS.fossils.fish,
-  footprint:       ASSETS.fossils.footprint,
-  ammonite:        ASSETS.fossils.ammonite,
-  pottery:         ASSETS.fossils.pottery,
-  medallion:       ASSETS.fossils.medallion,
-  bone_fragment:   ASSETS.fossils.boneFragment,
-  legfoot:         ASSETS.fossils.legfoot,
-  partialSkeleton: ASSETS.fossils.partialSkeleton,
-};
 
 const CARDS_PER_PAGE = 4;
 
@@ -73,6 +54,29 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
     const pattern = getFossilPattern(activeCard.id);
     if (pattern) sendRawHex(pattern);
   }, [activeCard, sendRawHex]);
+
+  // Keyboard + DotPad panning: ←/→ browse fossils across pages, Esc → 타이틀.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const total = ALL_FOSSILS.length;
+      const globalIdx = page * CARDS_PER_PAGE + activeIdx;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.min(total - 1, globalIdx + 1);
+        setPage(Math.floor(next / CARDS_PER_PAGE));
+        setActiveIdx(next % CARDS_PER_PAGE);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(0, globalIdx - 1);
+        setPage(Math.floor(prev / CARDS_PER_PAGE));
+        setActiveIdx(prev % CARDS_PER_PAGE);
+      } else if (e.key === 'Escape') {
+        dispatch({ type: 'SET_SCREEN', screen: 'title' });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [page, activeIdx, dispatch]);
 
   const piecesFound = activeCard
     ? fossilPieces.filter(fp => fp.fossilId === activeCard.id && fp.found).length

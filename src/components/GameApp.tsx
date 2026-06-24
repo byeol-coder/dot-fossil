@@ -18,12 +18,14 @@ export default function GameApp() {
   const prevScreen = useRef(state.screen);
 
   // DotPad connection lives here so it persists across screen transitions
-  const { status: dotpadStatus, connect, disconnect, sendGrid, sendRawHex } = useDotPad(dispatch);
+  const { status: dotpadStatus, connect, connectDemo, disconnect, selfTest, sendGrid, sendRawHex } = useDotPad(dispatch);
 
-  // Panning input always active
-  usePanningInput(dispatch);
-  // Keyboard input active in game mode
-  useKeyboardInput(dispatch, state.mode);
+  // Game input (panning + tool/mode keys) is scoped to the dig screen only,
+  // so menu/result/collection screens keep their own Enter/Space/arrow handling
+  // and the background game state is never mutated by stray key presses.
+  const inGame = state.screen === 'game';
+  usePanningInput(dispatch, inGame);
+  useKeyboardInput(dispatch, state.mode, inGame);
 
   // Move focus to screen heading on every screen transition
   useEffect(() => {
@@ -43,7 +45,15 @@ export default function GameApp() {
 
   switch (state.screen) {
     case 'title':
-      return <TitleScreen dispatch={dispatch} />;
+      return (
+        <TitleScreen
+          dispatch={dispatch}
+          dotpadStatus={dotpadStatus}
+          onConnect={connect}
+          onConnectDemo={connectDemo}
+          onDisconnect={disconnect}
+        />
+      );
     case 'tutorial':
       return <TutorialScreen dispatch={dispatch} />;
     case 'fossil-select':
@@ -57,7 +67,9 @@ export default function GameApp() {
           dispatch={dispatch}
           dotpadStatus={dotpadStatus}
           connect={connect}
+          connectDemo={connectDemo}
           disconnect={disconnect}
+          selfTest={selfTest}
           sendGrid={sendGrid}
           sendRawHex={sendRawHex}
         />
@@ -75,6 +87,14 @@ export default function GameApp() {
         />
       );
     default:
-      return <TitleScreen dispatch={dispatch} />;
+      return (
+        <TitleScreen
+          dispatch={dispatch}
+          dotpadStatus={dotpadStatus}
+          onConnect={connect}
+          onConnectDemo={connectDemo}
+          onDisconnect={disconnect}
+        />
+      );
   }
 }

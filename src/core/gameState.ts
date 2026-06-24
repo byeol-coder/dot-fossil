@@ -2,6 +2,7 @@ import type {
   GameState, GameAction, ToolType, GameMode, Screen,
   ExcavationGrade, ExcavationResult, CollectionItem,
 } from '../types';
+import { RESULT_ACTION_COUNT } from '../types';
 import { STAGES } from '../data/stages';
 import { generateGrid } from './fossilEngine';
 import { applyTool } from './digEngine';
@@ -349,6 +350,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SELECT_RESULT_ACTION':
       return { ...state, selectedResultActionIndex: action.index };
+
+    case 'SELECT_RESULT_ACTION_DELTA': {
+      // Compute from current state so rapid key presses can't desync via a stale
+      // closure of the selected index.
+      const n = RESULT_ACTION_COUNT;
+      const next = ((state.selectedResultActionIndex + action.delta) % n + n) % n;
+      return { ...state, selectedResultActionIndex: next };
+    }
 
     case 'READ_POSITION': {
       const cell = state.grid[state.cursor.y]?.[state.cursor.x];
