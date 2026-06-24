@@ -141,14 +141,6 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
   }, [activeBtn, lang]);
 
   // Derived pixel positions — recalculated on every resize via tf
-  const subStyle = centredStyle(IMG.subtitle.cx, IMG.subtitle.cy, tf, {
-    width:     IMG.subtitle.w * tf.scale,
-    minHeight: IMG.subtitle.h * tf.scale,
-  });
-  const tagStyle = centredStyle(IMG.tagline.cx, IMG.tagline.cy, tf, {
-    width:     IMG.tagline.w * tf.scale,
-    minHeight: IMG.tagline.h * tf.scale,
-  });
   const navStyle: CSSProperties = {
     position:  'absolute',
     left:      '50%',
@@ -164,18 +156,6 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
       aria-label="Dot Fossil"
       style={{ backgroundImage: `url('${ASSETS.screens.title}')` }}
     >
-      {/* ── Subtitle overlay — covers baked-in "촉각 발굴단" on sign ── */}
-      <div className="title-subtitle-wrap" aria-hidden="true" style={subStyle}>
-        <span className="title-subtitle-dash">—</span>
-        <span className="title-subtitle-text">{t('intro.subtitle')}</span>
-        <span className="title-subtitle-dash">—</span>
-      </div>
-
-      {/* ── Tagline overlay — covers baked-in parchment scroll text ── */}
-      <p className="title-tagline-wrap" style={tagStyle}>
-        {t('intro.tagline')}
-      </p>
-
       {/* ── Three pill buttons ── */}
       <nav className="title-pill-nav" aria-label="메인 메뉴" style={navStyle}>
         {BUTTONS.map((btn, i) => (
@@ -187,8 +167,7 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
             aria-current={i === activeBtn ? 'true' : undefined}
             autoFocus={i === 0}
           >
-            <span className="title-pill-icon"><btn.Icon /></span>
-            <span className="title-pill-label">{btn.label}</span>
+            <span className="title-pill-icon" aria-hidden="true"><btn.Icon /></span>
           </button>
         ))}
       </nav>
