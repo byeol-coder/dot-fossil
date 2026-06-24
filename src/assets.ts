@@ -19,8 +19,6 @@ export const ASSETS = {
     playDigging:       `${B}assets/screens/play-screen-digging-bg.png`,
     playFossilFound:   `${B}assets/screens/play-screen-fossil-found-bg.png`,
     playWarning:       `${B}assets/screens/play-screen-warning-bg.png`,
-    popupFossilFound:  `${B}assets/screens/fossil-found-popup-bg.png`,
-    popupDamageWarn:   `${B}assets/screens/damage-warning-popup-bg.png`,
     excavationResult:  `${B}assets/screens/excavation-result-screen-bg.png`,
   },
 
