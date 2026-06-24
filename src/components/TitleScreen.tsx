@@ -14,13 +14,12 @@ const IMG_W = 1672;
 const IMG_H = 941;
 
 // Bounding-box center points (cx, cy) and sizes (w, h) in source-image pixels.
-// Adjust these when the source image changes to re-sync overlays.
-// Measured from 1672×941 Dot fossil_intro.png via canvas pixel analysis.
+// Calibrated for 1672×941 Documents/Dot fossil_intro.png (version with "Dot Fossil" baked into sign).
 const IMG = {
-  subtitle: { cx: 510, cy: 322, w: 800, h: 150 }, // dark sign band — y≈248–396
-  tagline:  { cx: 510, cy: 520, w: 800, h: 162 }, // parchment scroll — y≈440–600
-  buttons:  { cy: 872 },                            // baked-in pill buttons — y≈848–897
-  lang:     { cx: 1490, cy: 913 },                 // 한국어 toggle — y≈890–935
+  // Parchment strip just below the "Dot Fossil" sign — subtitle goes here
+  subtitle: { cx: 400, cy: 315, w: 580, h: 85 },
+  buttons:  { cy: 872 },   // baked-in pill buttons
+  lang:     { cx: 1490, cy: 913 },
 } as const;
 
 interface ImgTransform { scale: number; ox: number; oy: number; }
@@ -141,6 +140,10 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
   }, [activeBtn, lang]);
 
   // Derived pixel positions — recalculated on every resize via tf
+  const subStyle = centredStyle(IMG.subtitle.cx, IMG.subtitle.cy, tf, {
+    width:     IMG.subtitle.w * tf.scale,
+    minHeight: IMG.subtitle.h * tf.scale,
+  });
   const navStyle: CSSProperties = {
     position:  'absolute',
     left:      '50%',
@@ -156,7 +159,14 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
       aria-label="Dot Fossil"
       style={{ backgroundImage: `url('${ASSETS.screens.title}')` }}
     >
-      {/* ── Three pill buttons ── */}
+      {/* ── Subtitle — parchment strip below "Dot Fossil" sign ── */}
+      <div className="title-subtitle-wrap" aria-hidden="true" style={subStyle}>
+        <span className="title-subtitle-dash">—</span>
+        <span className="title-subtitle-text">{t('intro.subtitle')}</span>
+        <span className="title-subtitle-dash">—</span>
+      </div>
+
+      {/* ── Three pill buttons — transparent overlays over baked-in buttons ── */}
       <nav className="title-pill-nav" aria-label="메인 메뉴" style={navStyle}>
         {BUTTONS.map((btn, i) => (
           <button
@@ -167,7 +177,6 @@ export default function TitleScreen({ dispatch }: TitleScreenProps) {
             aria-current={i === activeBtn ? 'true' : undefined}
             autoFocus={i === 0}
           >
-            <span className="title-pill-icon" aria-hidden="true"><btn.Icon /></span>
           </button>
         ))}
       </nav>
