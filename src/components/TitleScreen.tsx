@@ -17,7 +17,8 @@ const IMG_H = 941;
 // Calibrated for 1672×941 Documents/Dot fossil_intro.png (version with "Dot Fossil" baked into sign).
 const IMG = {
   // Parchment strip just below the "Dot Fossil" sign — subtitle goes here
-  subtitle: { cx: 400, cy: 315, w: 580, h: 85 },
+  // With background-position:center top, oy=0. Calibrate by: cy = screen_y / scale
+  subtitle: { cx: 420, cy: 420, w: 600, h: 80 },
   buttons:  { cy: 872 },   // baked-in pill buttons
   lang:     { cx: 1490, cy: 913 },
 } as const;
@@ -27,7 +28,8 @@ interface ImgTransform { scale: number; ox: number; oy: number; }
 function computeTransform(): ImgTransform {
   const vw = window.innerWidth, vh = window.innerHeight;
   const scale = Math.max(vw / IMG_W, vh / IMG_H);
-  return { scale, ox: (IMG_W * scale - vw) / 2, oy: (IMG_H * scale - vh) / 2 };
+  // background-position: center top → horizontal center, vertical always starts at top (oy=0)
+  return { scale, ox: (IMG_W * scale - vw) / 2, oy: 0 };
 }
 
 // Recomputes whenever the viewport resizes
