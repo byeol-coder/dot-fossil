@@ -18,7 +18,13 @@ export default function GameApp() {
   const prevScreen = useRef(state.screen);
 
   // DotPad connection lives here so it persists across screen transitions
-  const { status: dotpadStatus, connect, connectDemo, disconnect, selfTest, sendGrid, sendRawHex } = useDotPad(dispatch);
+  const { status: dotpadStatus, connect, connectDemo, disconnect, selfTest, sendGrid, sendRawHex, sendText } = useDotPad(dispatch);
+
+  // Mirror the current status message onto the 20-cell braille text line,
+  // alongside whatever 60×40 graphic is showing, on every screen.
+  useEffect(() => {
+    sendText(state.brailleMessage);
+  }, [state.brailleMessage, sendText]);
 
   // Game input (panning + tool/mode keys) is scoped to the dig screen only,
   // so menu/result/collection screens keep their own Enter/Space/arrow handling

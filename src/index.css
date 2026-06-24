@@ -3422,18 +3422,60 @@ html, body {
 }
 .dg-popup {
   position: relative;
-  width: min(88%, 660px);
-  aspect-ratio: 16 / 9;
-  background: rgba(245, 230, 190, 0.96);
+  width: min(92%, 600px);
+  max-height: 90vh;
+  background: linear-gradient(160deg, #f7ecd2 0%, #ecdcb4 100%);
   border: 3px solid #9a7840;
   border-radius: 20px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.45);
-  background-size: cover;
-  background-position: center;
+  box-shadow: 0 10px 44px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55);
   display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
   overflow: hidden;
   animation: dg-popup-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ── Fossil-found: clean reward card, fossil centred as the hero ── */
+.dg-popup-found { flex-direction: column; padding: 22px 24px; }
+.dg-popup-body {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 9px;
+}
+.dg-popup-found .dg-popup-title { font-size: clamp(1rem, 2vw, 1.3rem); text-align: center; }
+.dg-popup-fossil {
+  position: relative;
+  width: clamp(96px, 26%, 150px);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px 0;
+}
+.dg-popup-fossil-ring {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,216,90,0.55) 0%, rgba(240,192,48,0.25) 45%, transparent 72%);
+  animation: dg-fossil-glow-pulse 1.6s ease-in-out infinite;
+}
+.dg-popup-fossil-img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(80,40,0,0.35));
+}
+.dg-popup-found .dg-popup-fossil-name { font-size: clamp(0.92rem, 1.5vw, 1.15rem); font-weight: 700; color: #3a2008; font-style: normal; }
+.dg-popup-found .dg-popup-pieces { justify-content: center; }
+.dg-popup-found .dg-popup-braille { text-align: center; }
+.dg-popup-btn { margin-top: 6px; padding: 11px 40px; font-size: 1rem; }
 @keyframes dg-popup-in {
   from { transform: scale(0.85); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }

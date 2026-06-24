@@ -6,6 +6,8 @@ import type { Dispatch } from 'react';
 import type { GameAction } from '../types';
 import { encodeMatrixToHex } from './encoding';
 import { getFossilPattern } from './fossilPatterns';
+import { textToBrailleHex } from './koreanBraille';
+import { fetchBrailleUnicode, unicodeBrailleToHex } from './braillify';
 
 export type DotPadStatus = 'disconnected' | 'connecting' | 'connected' | 'unsupported';
 
@@ -142,6 +144,44 @@ export function useDotPad(dispatch: Dispatch<GameAction>) {
     if (sdk.current) sdk.current.displayGraphicData(hex);
   }, [status]);
 
+  // Send text to the 20-cell braille text line (separate from the 60×40 graphic).
+  // Proper 점역 comes from the braillify.kr API (cached); on network failure we
+  // fall back to the local basic table so the line still works offline.
+  const brailleCache = useRef<Map<string, string>>(new Map()); // text → DotPad hex
+  const latestText = useRef('');
+  const debounceTimer = useRef(0);
+
+  const sendText = useCallback((text: string) => {
+    if (status !== 'connected' || !text) return;
+    latestText.current = text;
+
+    const push = (hex: string, via: string) => {
+      if (latestText.current !== text) return; // a newer message superseded this one
+      if (demo.current) {
+        // eslint-disable-next-line no-console
+        console.info(`[DotPad demo] 점자 텍스트 전송 (20셀, ${via}): "${text.slice(0, 20)}"`);
+        return;
+      }
+      sdk.current?.displayTextData(hex);
+    };
+
+    const cached = brailleCache.current.get(text);
+    if (cached !== undefined) { push(cached, 'cache'); return; }
+
+    // Debounce network 점역 so rapid cursor moves don't spam the API.
+    window.clearTimeout(debounceTimer.current);
+    debounceTimer.current = window.setTimeout(() => {
+      if (latestText.current !== text) return;
+      fetchBrailleUnicode(text)
+        .then(braille => {
+          const hex = unicodeBrailleToHex(braille, 20);
+          brailleCache.current.set(text, hex);
+          push(hex, 'braillify');
+        })
+        .catch(() => push(textToBrailleHex(text, 20), 'local-fallback'));
+    }, 160);
+  }, [status]);
+
   // ── Hardware self-test ──────────────────────────────────────────────────────
   // Sends a sequence of KNOWN orientation patterns so a real-device tester can
   // confirm, in seconds, that cells map the way the encoder assumes. Each frame
@@ -172,5 +212,5 @@ export function useDotPad(dispatch: Dispatch<GameAction>) {
     });
   }, [status]);
 
-  return { status, connect, connectDemo, disconnect, selfTest, sendGrid, sendRawHex };
+  return { status, connect, connectDemo, disconnect, selfTest, sendGrid, sendRawHex, sendText };
 }

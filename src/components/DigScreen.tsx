@@ -3,6 +3,8 @@ import type { Dispatch } from 'react';
 import type { GameState, GameAction, ToolType } from '../types';
 import { STAGES } from '../data/stages';
 import { TOOL_DEFS } from '../data/tools';
+import { FOSSIL_DEFS } from '../data/fossils';
+import { FOSSIL_IMG } from '../data/fossilImages';
 import { renderToDotGrid } from '../dotpad/tactilePatterns';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 import type { DotPadStatus } from '../dotpad/useDotPad';
@@ -86,49 +88,42 @@ function getPlayBg(characterAction: GameState['characterAction'], damage: number
 }
 
 function FossilFoundPopup({
-  foundPieces, totalPieces, fossilName, brailleMessage,
+  foundPieces, totalPieces, fossilName, fossilImg, brailleMessage,
   onContinue, t,
 }: {
-  foundPieces: number; totalPieces: number; fossilName: string;
+  foundPieces: number; totalPieces: number; fossilName: string; fossilImg: string;
   brailleMessage: string; onContinue: () => void;
   t: (k: string) => string;
 }) {
   return (
     <div className="dg-popup-overlay" role="dialog" aria-modal="true" aria-label={t('gameplay.fossilFoundTitle')}>
-      <div
-        className="dg-popup"
-        style={{ backgroundImage: `url('${ASSETS.screens.popupFossilFound}')` }}
-      >
-        {/* Left panel */}
-        <div className="dg-popup-left">
-          <div className="dg-popup-char">
-            <GameAssetImage src={ASSETS.character.found} alt="" style={{ height: '100%', width: 'auto', objectFit: 'contain', objectPosition: 'bottom center' }} />
+      <div className="dg-popup dg-popup-found">
+        {/* Reward body — fossil is the hero, centred */}
+        <div className="dg-popup-body">
+          <div className="dg-popup-title">🎉 {t('gameplay.fossilFoundTitle')}</div>
+
+          <div className="dg-popup-fossil">
+            <span className="dg-popup-fossil-ring" aria-hidden="true" />
+            {fossilImg && (
+              <GameAssetImage src={fossilImg} alt={fossilName} className="dg-popup-fossil-img" />
+            )}
           </div>
-          <div className="dg-fossil-glow" aria-hidden="true">
-            <svg width="90" height="90" viewBox="0 0 90 90" aria-hidden="true">
-              <circle cx="45" cy="45" r="38" fill="rgba(240,192,48,0.18)" />
-              <circle cx="45" cy="45" r="28" fill="rgba(240,192,48,0.28)" />
-              <circle cx="45" cy="45" r="18" fill="rgba(255,220,80,0.42)" />
-              <text x="45" y="52" textAnchor="middle" fontSize="26" fill="#b88010">★</text>
-            </svg>
-          </div>
-        </div>
-        {/* Right panel */}
-        <div className="dg-popup-right">
-          <div className="dg-popup-title">{t('gameplay.fossilFoundTitle')}</div>
+
           <div className="dg-popup-fossil-name">{fossilName}</div>
-          <div className="dg-popup-pieces">
+
+          <div className="dg-popup-pieces" aria-label={`${foundPieces}/${totalPieces}`}>
             {Array.from({ length: totalPieces }).map((_, i) => (
               <div key={i} className={`dg-popup-piece-dot${i < foundPieces ? ' found' : ''}`} aria-hidden="true" />
             ))}
             <span className="dg-popup-pieces-label">{foundPieces}/{totalPieces}</span>
           </div>
+
           <p className="dg-popup-braille">{brailleMessage}</p>
+
           <button
-            className="gw-oval-btn"
+            className="gw-oval-btn dg-popup-btn"
             onClick={onContinue}
             aria-label={t('gameplay.continueBtn')}
-            style={{ marginTop: 12, padding: '10px 32px' }}
             autoFocus
           >
             {t('gameplay.continueBtn')}
@@ -148,10 +143,7 @@ function DamageWarningPopup({
   const tool = TOOL_DEFS[currentTool];
   return (
     <div className="dg-popup-overlay" role="dialog" aria-modal="true" aria-label={t('gameplay.damageWarnTitle')}>
-      <div
-        className="dg-popup"
-        style={{ backgroundImage: `url('${ASSETS.screens.popupDamageWarn}')` }}
-      >
+      <div className="dg-popup dg-popup-warn">
         {/* Left panel */}
         <div className="dg-popup-left">
           <div className="dg-popup-char">
@@ -296,7 +288,9 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, conn
 
   const bg = getPlayBg(characterAction, damage);
   const fallbackBg = ASSETS.reference.gameplay;
-  const fossilName = stage?.fossils[0]?.fossilId ?? '화석';
+  const mainFossilId = stage?.fossils[0]?.fossilId ?? '';
+  const fossilName = FOSSIL_DEFS[mainFossilId]?.name ?? '화석';
+  const fossilImg = FOSSIL_IMG[mainFossilId] ?? '';
 
   return (
     <div
@@ -499,6 +493,7 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, conn
           foundPieces={foundPieces}
           totalPieces={totalPieces}
           fossilName={fossilName}
+          fossilImg={fossilImg}
           brailleMessage={state.brailleMessage}
           onContinue={() => setDigView('playing')}
           t={t}
