@@ -5,6 +5,7 @@ import { STAGES } from '../data/stages';
 import { TOOL_DEFS } from '../data/tools';
 import { FOSSIL_DEFS } from '../data/fossils';
 import { FOSSIL_IMG } from '../data/fossilImages';
+import { DINOSAUR_IMG, DINOSAUR_KO } from '../data/dinosaurImages';
 import { renderToDotGrid } from '../dotpad/tactilePatterns';
 import type { DotGrid } from '../dotpad/tactilePatterns';
 import type { DotPadStatus } from '../dotpad/useDotPad';
@@ -88,10 +89,11 @@ function getPlayBg(characterAction: GameState['characterAction'], damage: number
 }
 
 function FossilFoundPopup({
-  foundPieces, totalPieces, fossilName, fossilImg, brailleMessage,
-  onContinue, t,
+  foundPieces, totalPieces, fossilName, fossilImg, dinoImg, dinoName,
+  brailleMessage, onContinue, t,
 }: {
   foundPieces: number; totalPieces: number; fossilName: string; fossilImg: string;
+  dinoImg?: string; dinoName?: string;
   brailleMessage: string; onContinue: () => void;
   t: (k: string) => string;
 }) {
@@ -110,6 +112,13 @@ function FossilFoundPopup({
           </div>
 
           <div className="dg-popup-fossil-name">{fossilName}</div>
+
+          {dinoImg && (
+            <div className="dg-popup-dino">
+              <GameAssetImage src={dinoImg} alt={dinoName ?? ''} className="dg-popup-dino-img" multiplyBlend />
+              {dinoName && <span className="dg-popup-dino-label">{dinoName}의 화석</span>}
+            </div>
+          )}
 
           <div className="dg-popup-pieces" aria-label={`${foundPieces}/${totalPieces}`}>
             {Array.from({ length: totalPieces }).map((_, i) => (
@@ -291,6 +300,9 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, conn
   const mainFossilId = stage?.fossils[0]?.fossilId ?? '';
   const fossilName = FOSSIL_DEFS[mainFossilId]?.name ?? '화석';
   const fossilImg = FOSSIL_IMG[mainFossilId] ?? '';
+  const fossilDinoId = FOSSIL_DEFS[mainFossilId]?.dinosaur;
+  const dinoImg = fossilDinoId ? (DINOSAUR_IMG[fossilDinoId] ?? '') : '';
+  const dinoName = fossilDinoId ? (DINOSAUR_KO[fossilDinoId] ?? '') : '';
 
   return (
     <div
@@ -494,6 +506,8 @@ export default function DigScreen({ state, dispatch, dotpadStatus, connect, conn
           totalPieces={totalPieces}
           fossilName={fossilName}
           fossilImg={fossilImg}
+          dinoImg={dinoImg}
+          dinoName={dinoName}
           brailleMessage={state.brailleMessage}
           onContinue={() => setDigView('playing')}
           t={t}

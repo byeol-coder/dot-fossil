@@ -3,6 +3,7 @@ import type { Dispatch } from 'react';
 import type { GameAction, FossilPiece } from '../types';
 import { FOSSIL_DEFS } from '../data/fossils';
 import { FOSSIL_IMG } from '../data/fossilImages';
+import { DINOSAUR_IMG, DINOSAUR_KO } from '../data/dinosaurImages';
 import { ASSETS } from '../assets';
 import { getFossilPattern } from '../dotpad/fossilPatterns';
 import GameAssetImage from './GameAssetImage';
@@ -172,6 +173,17 @@ export default function CollectionBook({ collectedFossils, fossilPieces, dispatc
         aria-label="도티의 메시지"
       >
         <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{speechText}</p>
+        {activeCard?.dinosaur && DINOSAUR_IMG[activeCard.dinosaur] && (
+          <div className="gw-col-dino">
+            <GameAssetImage
+              src={DINOSAUR_IMG[activeCard.dinosaur]}
+              alt={DINOSAUR_KO[activeCard.dinosaur] ?? ''}
+              className="gw-col-dino-img"
+              multiplyBlend
+            />
+            <span className="gw-col-dino-label">{DINOSAUR_KO[activeCard.dinosaur]}</span>
+          </div>
+        )}
       </div>
 
       {/* Bottom nav */}

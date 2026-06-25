@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import type { Dispatch } from 'react';
 import type { GameAction, GameState, ResultAction } from '../types';
 import { STAGES } from '../data/stages';
+import { FOSSIL_DEFS } from '../data/fossils';
 import { ASSETS } from '../assets';
 import { getFossilPattern } from '../dotpad/fossilPatterns';
 import { FOSSIL_IMG } from '../data/fossilImages';
+import { DINOSAUR_IMG, DINOSAUR_KO } from '../data/dinosaurImages';
 import GameAssetImage from './GameAssetImage';
 import { useTranslation } from '../i18n';
 
@@ -116,6 +118,9 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
   const conservePct = Math.max(0, 100 - damage);
   const mainFossilId = stage.fossils[0]?.fossilId ?? '';
   const fossilImg = FOSSIL_IMG[mainFossilId] ?? '';
+  const fossilDinoId = FOSSIL_DEFS[mainFossilId]?.dinosaur;
+  const dinoImg  = fossilDinoId ? (DINOSAUR_IMG[fossilDinoId] ?? '') : '';
+  const dinoName = fossilDinoId ? (DINOSAUR_KO[fossilDinoId]  ?? '') : '';
 
   const stars: 0 | 1 | 2 | 3 =
     grade === 'clean'          ? 3 :
@@ -191,8 +196,14 @@ export default function StageResultScreen({ state, dispatch, sendRawHex }: Stage
           <GameAssetImage
             src={fossilImg}
             alt={mainFossilId}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            style={{ width: '100%', height: dinoImg ? '65%' : '100%', objectFit: 'contain' }}
           />
+        )}
+        {dinoImg && (
+          <div className="sr-dino-badge">
+            <GameAssetImage src={dinoImg} alt={dinoName} className="sr-dino-img" />
+            <span className="sr-dino-label">{dinoName}</span>
+          </div>
         )}
         {completion >= 90 && <div className="sr-fossil-glow" aria-hidden="true" />}
       </div>
