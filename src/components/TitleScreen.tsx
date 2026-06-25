@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import type { Dispatch } from 'react';
 import type { GameAction } from '../types';
 import { useTranslation } from '../i18n';
@@ -14,79 +14,16 @@ interface TitleScreenProps {
   onDisconnect: () => void;
 }
 
-// ─── Image-sync positioning ──────────────────────────────────────────────────
-// Source image native size
-const IMG_W = 1672;
-const IMG_H = 941;
-
-// Parchment scroll bounding box in source-image pixels
-// Measured from 1672×941 intro image with debug markers at 1920×1080
-const PARCHMENT = { left: 50, right: 880, top: 355, bottom: 447 } as const;
-
-// Overlay anchor points in source-image pixels (1672×941).
-// The new hero art has NO baked-in buttons, so these place VISIBLE controls
-// onto the open wood-desk strip along the bottom.
-const IMG = {
-  buttons: { cx: 760, cy: 872 }, // centre of the 3-button menu row (bottom centre)
-  lang:    { cx: 1530, cy: 872 }, // language toggle (bottom right) — same baseline as menu
-  dotpad:  { cx: 250,  cy: 864 }, // DotPad connect chip (bottom left) — raised so its tall stack isn't clipped
-} as const;
-
-interface ImgTransform { scale: number; ox: number; oy: number; }
-
-function computeTransform(): ImgTransform {
-  const vw = window.innerWidth, vh = window.innerHeight;
-  const scale = Math.max(vw / IMG_W, vh / IMG_H);
-  // background-position: center center → equal vertical crop top/bottom
-  return { scale, ox: (IMG_W * scale - vw) / 2, oy: (IMG_H * scale - vh) / 2 };
-}
-
-// Recomputes whenever the viewport resizes
-function useImgTransform(): ImgTransform {
-  const [tf, setTf] = useState(computeTransform);
+function usePortrait() {
+  const [portrait, setPortrait] = useState(() => window.innerHeight > window.innerWidth);
   useEffect(() => {
-    const upd = () => setTf(computeTransform());
-    window.addEventListener('resize', upd);
-    return () => window.removeEventListener('resize', upd);
+    const mq = window.matchMedia('(orientation: portrait)');
+    const cb = (e: MediaQueryListEvent) => setPortrait(e.matches);
+    mq.addEventListener('change', cb);
+    return () => mq.removeEventListener('change', cb);
   }, []);
-  return tf;
+  return portrait;
 }
-
-// Returns absolute position style centred on the given image-space point
-function centredStyle(
-  cx: number, cy: number, tf: ImgTransform,
-  extra?: CSSProperties
-): CSSProperties {
-  return {
-    position: 'absolute',
-    left: cx * tf.scale - tf.ox,
-    top:  cy * tf.scale - tf.oy,
-    transform: 'translate(-50%, -50%)',
-    ...extra,
-  };
-}
-
-// Compute subtitle style that centres on the VISIBLE portion of the parchment.
-// When the viewport is narrow, the image is cropped horizontally (cover),
-// so the visible parchment center shifts right — this accounts for that.
-function computeSubtitleStyle(tf: ImgTransform): CSSProperties {
-  const vw = window.innerWidth;
-  // Visible parchment screen extents (clamped to viewport)
-  const pLeft  = Math.max(0,  PARCHMENT.left  * tf.scale - tf.ox);
-  const pRight = Math.min(vw, PARCHMENT.right * tf.scale - tf.ox);
-  const pCx    = (pLeft + pRight) / 2;
-  const pCy    = ((PARCHMENT.top + PARCHMENT.bottom) / 2) * tf.scale - tf.oy;
-  const pW     = Math.min(pRight - pLeft, vw * 0.52);
-  return {
-    position:  'absolute',
-    left:      pCx,
-    top:       pCy,
-    transform: 'translate(-50%, -50%)',
-    width:     pW,
-    minHeight: (PARCHMENT.bottom - PARCHMENT.top) * tf.scale,
-  };
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 const ShovelIcon = () => (
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
@@ -134,7 +71,9 @@ const GlobeIcon = () => (
 export default function TitleScreen({ dispatch, dotpadStatus, onConnect, onConnectDemo, onDisconnect }: TitleScreenProps) {
   const { t, lang, setLang } = useTranslation();
   const [activeBtn, setActiveBtn] = useState(0);
-  const tf = useImgTransform();
+  const portrait = usePortrait();
+
+  const bgUrl = portrait ? ASSETS.screens.titlePortrait : ASSETS.screens.titleWide;
 
   const BUTTONS = [
     {
@@ -171,81 +110,58 @@ export default function TitleScreen({ dispatch, dotpadStatus, onConnect, onConne
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBtn, lang]);
 
-  // Derived pixel positions — recalculated on every resize via tf
-  const subStyle = computeSubtitleStyle(tf);
-
-  // Clamp nav/lang to always stay within viewport (buttons near image bottom may overflow on wide/short displays)
-  const vh = window.innerHeight;
-  const navStyle: CSSProperties = {
-    position:  'absolute',
-    left:      IMG.buttons.cx * tf.scale - tf.ox,
-    top:       Math.min(IMG.buttons.cy * tf.scale - tf.oy, vh - 70),
-    transform: 'translate(-50%, -50%)',
-  };
-  const langStyle = centredStyle(IMG.lang.cx, IMG.lang.cy, tf, {
-    top: Math.min(IMG.lang.cy * tf.scale - tf.oy, vh - 36),
-  });
-  const dotpadStyle: CSSProperties = {
-    position:  'absolute',
-    left:      IMG.dotpad.cx * tf.scale - tf.ox,
-    top:       Math.min(IMG.dotpad.cy * tf.scale - tf.oy, vh - 30),
-    transform: 'translate(-50%, -50%)',
-    zIndex:    20,
-  };
-
   return (
     <div
-      className="title-new"
+      className={`title-new${portrait ? ' portrait' : ''}`}
       role="main"
       aria-label="Dot Fossil"
-      style={{ backgroundImage: `url('${ASSETS.screens.title}')` }}
+      style={{ backgroundImage: `url('${bgUrl}')` }}
     >
-      {/* ── Subtitle — parchment strip below "Dot Fossil" sign ── */}
-      <div className="title-subtitle-wrap" aria-hidden="true" style={subStyle}>
+      {/* Subtitle — overlaid below the baked-in "Dot Fossil" sign */}
+      <div className="title-subtitle-wrap" aria-hidden="true">
         <span className="title-subtitle-dash">—</span>
         <span className="title-subtitle-text">{t('intro.subtitle')}</span>
         <span className="title-subtitle-dash">—</span>
       </div>
 
-      {/* ── Three menu buttons — visible wood/metal buttons on the open desk ── */}
-      <nav className="title-pill-nav" aria-label="메인 메뉴" style={navStyle}>
-        {BUTTONS.map((btn, i) => (
+      {/* Bottom bar: DotPad (left) · menu buttons (center) · language (right) */}
+      <div className="title-bottom-bar">
+        <div className="title-bottom-left">
+          <DotPadConnector
+            status={dotpadStatus}
+            onConnect={onConnect}
+            onConnectDemo={onConnectDemo}
+            onDisconnect={onDisconnect}
+          />
+        </div>
+
+        <nav className="title-pill-nav" aria-label="메인 메뉴">
+          {BUTTONS.map((btn, i) => (
+            <button
+              key={btn.key}
+              className={`title-pill-btn${i === activeBtn ? ' active' : ''}`}
+              onClick={btn.action}
+              aria-label={btn.label}
+              aria-current={i === activeBtn ? 'true' : undefined}
+              autoFocus={i === 0}
+            >
+              <span className="title-pill-icon" aria-hidden="true"><btn.Icon /></span>
+              <span className="title-pill-label">{btn.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="title-bottom-right">
           <button
-            key={btn.key}
-            className={`title-pill-btn${i === activeBtn ? ' active' : ''}`}
-            onClick={btn.action}
-            aria-label={btn.label}
-            aria-current={i === activeBtn ? 'true' : undefined}
-            autoFocus={i === 0}
+            className="title-lang-btn"
+            onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')}
+            aria-label="언어 전환 / Switch language"
           >
-            <span className="title-pill-icon" aria-hidden="true"><btn.Icon /></span>
-            <span className="title-pill-label">{btn.label}</span>
+            <GlobeIcon />
+            <span>{t(`lang.${lang}`)}</span>
           </button>
-        ))}
-      </nav>
-
-      {/* ── DotPad connect — bottom left ── */}
-      <div style={dotpadStyle}>
-        <DotPadConnector
-          status={dotpadStatus}
-          onConnect={onConnect}
-          onConnectDemo={onConnectDemo}
-          onDisconnect={onDisconnect}
-        />
+        </div>
       </div>
-
-      {/* ── Language toggle ── */}
-      <button
-        className="title-lang-btn"
-        onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')}
-        aria-label="언어 전환 / Switch language"
-        style={langStyle}
-      >
-        <GlobeIcon />
-        <span>{t(`lang.${lang}`)}</span>
-      </button>
-
-      {/* Version label is baked into the new artwork (bottom-left), so no overlay here. */}
     </div>
   );
 }
