@@ -139,7 +139,7 @@ export default function TitleScreen({ dispatch, dotpadStatus, onConnect, onConne
           {BUTTONS.map((btn, i) => (
             <button
               key={btn.key}
-              className={`title-pill-btn${i === activeBtn ? ' active' : ''}`}
+              className={`title-pill-btn${btn.key === 'play' ? ' primary' : ''}${i === activeBtn ? ' active' : ''}`}
               onClick={btn.action}
               aria-label={btn.label}
               aria-current={i === activeBtn ? 'true' : undefined}
